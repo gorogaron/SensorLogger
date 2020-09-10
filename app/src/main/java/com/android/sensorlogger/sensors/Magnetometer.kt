@@ -6,10 +6,10 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.util.Log
 
-class Accelerometer(context: Context) : SensorEventListener, SensorBase(context) {
+class Magnetometer(context: Context) : SensorEventListener, SensorBase(context) {
 
     init {
-        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
         sampleRateMillis = 500
     }
 
@@ -17,7 +17,7 @@ class Accelerometer(context: Context) : SensorEventListener, SensorBase(context)
         var x = event!!.values[0]
         var y = event!!.values[1]
         var z = event!!.values[2]
-        //Log.d("ACC", "$x $y $z")
+        //Log.d("MAGNETO", "$x $y $z")
         sensorManager.unregisterListener(this)
 
         //Make measurement after sampleRateMillis
