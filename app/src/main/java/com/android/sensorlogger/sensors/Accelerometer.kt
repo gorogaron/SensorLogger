@@ -14,10 +14,11 @@ class Accelerometer(context: Context) : SensorEventListener, SensorBase(context)
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
+        super.onSensorChanged(event)
         var x = event!!.values[0]
         var y = event!!.values[1]
         var z = event!!.values[2]
-        //Log.d("ACC", "$x $y $z")
+        Log.d("ACC", "$x $y $z")
         sensorManager.unregisterListener(this)
 
         //Make measurement after sampleRateMillis
