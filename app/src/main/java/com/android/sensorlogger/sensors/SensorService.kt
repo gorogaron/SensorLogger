@@ -17,7 +17,7 @@ class SensorService : Service(){
 
     override fun onCreate() {
         super.onCreate()
-        accelerometer = Accelerometer(this)
+        accelerometer = Accelerometer(this, "ACC")
         //Will be called only the first time the service is created. We can stop and start it,
         //onCreate will be called only once.
     }

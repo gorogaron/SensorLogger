@@ -6,7 +6,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.util.Log
 
-class Accelerometer(context: Context) : SensorEventListener, SensorBase(context) {
+class Accelerometer(context: Context, fileName: String) : SensorEventListener, SensorBase(context, fileName) {
 
     init {
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
