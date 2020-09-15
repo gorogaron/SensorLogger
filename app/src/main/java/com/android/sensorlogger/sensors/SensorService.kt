@@ -5,6 +5,8 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.android.sensorlogger.App
@@ -14,20 +16,32 @@ import com.android.sensorlogger.R
 class SensorService : Service(){
 
     lateinit var accelerometer : Accelerometer
+    lateinit var gyroscope : Gyroscope
+    lateinit var magnetometer: Magnetometer
 
     override fun onCreate() {
         super.onCreate()
+
         accelerometer = Accelerometer(this, "ACC")
+        gyroscope = Gyroscope(this, "GYRO")
+        magnetometer = Magnetometer(this, "MAG")
+
+        var sensorManager: SensorManager
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val deviceSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)
+
+
+
         //Will be called only the first time the service is created. We can stop and start it,
         //onCreate will be called only once.
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        var notificationIntent = Intent(this, MainActivity::class.java)
-        var pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+        val notificationIntent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
-        var notification = NotificationCompat.Builder(this, App.CHANNEL_ID)
+        val notification = NotificationCompat.Builder(this, App.CHANNEL_ID)
             .setContentTitle("Sensor Logger")
             .setContentText("Measurement is running in the background.")
             .setSmallIcon(R.drawable.icon)
@@ -36,12 +50,16 @@ class SensorService : Service(){
 
         startForeground(1, notification)
         accelerometer.run()
+        gyroscope.run()
+        magnetometer.run()
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
 
     override fun onDestroy() {
         accelerometer.stop()
+        gyroscope.stop()
+        magnetometer.stop()
         super.onDestroy()
     }
 

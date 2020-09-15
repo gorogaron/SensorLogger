@@ -23,16 +23,18 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
     var sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     lateinit var sensor : Sensor
 
-    val measurementChannel = Channel<SensorEvent>(100)
-
     //Periodic handler for sensors
     var sampleRateMillis : Long = 500   //Default sample rate, set it in implementation classes!
     var timingHandler = Handler()
-    val periodicRegisterer = Runnable { sensorManager.registerListener(this@SensorBase, sensor, SensorManager.SENSOR_DELAY_NORMAL) }
+
+    private val fakeListener = FakeListener()
+    private val periodicRegisterer = Runnable { sensorManager.registerListener(this@SensorBase, sensor, SensorManager.SENSOR_DELAY_NORMAL) }
 
     //Periodic handler for logging
-    val fileWriter = Runnable { writeToFile(context) }
-    var fileName = filename_tag
+    private val fileWriter = Runnable { writeToFile(context) }
+    private var fileName = filename_tag
+    private val fileSavingRate = 10000  //Period time of file saving in milliseconds
+    private val measurementChannel = Channel<SensorEvent>(100)
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         //Nothing to do yet.
@@ -42,15 +44,18 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
         runBlocking {
             measurementChannel.send(event!!)
         }
-        //Implement further part in children
+        sensorManager.unregisterListener(this)
+
+        //Make measurement after sampleRateMillis
+        timingHandler.postDelayed(periodicRegisterer, sampleRateMillis)
     }
 
-    fun writeToFile(context: Context) {
+    private fun writeToFile(context: Context) {
         try {
             GlobalScope.launch(Dispatchers.IO){
 
                 val appDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger")
-                val logDirectory = File(appDirectory.toString() + "/logs")
+                val logDirectory = File("$appDirectory/logs")
                 val logFile = File(logDirectory, fileName)
                 if (!appDirectory.exists()) {
                     appDirectory.mkdir()
@@ -62,17 +67,27 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
                     logFile.createNewFile()
                 }
 
-                val outputStreamWriter = OutputStreamWriter(FileOutputStream(logFile, true))
+                var outputStreamWriter = OutputStreamWriter(FileOutputStream(logFile, true))
+                var iterationCounter = 0
 
                 for (event in measurementChannel) {
                     //Loop breaks when measurementChannel.close() is called
                     val line = "${event.values[0]};${event.values[1]};${event.values[2]}\n"
+                    Log.d("Sensor", line)
                     outputStreamWriter.write(line)
+
+                    iterationCounter += 1
+                    if (iterationCounter > (fileSavingRate/sampleRateMillis).toInt()){
+                        Log.d("Sensor", "File saved.")
+                        iterationCounter = 0
+                        outputStreamWriter.close() //Save file
+                        outputStreamWriter = OutputStreamWriter(FileOutputStream(logFile, true))
+                    }
                 }
                 outputStreamWriter.close()
             }
         } catch (e: IOException) {
-            Log.e("Exception", "File write failed: " + e.toString())
+            Log.e("Exception", "File write failed: $e")
         }
     }
 
@@ -88,12 +103,16 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
                 "${calendar.get(Calendar.MINUTE)}_" +
                 "${calendar.get(Calendar.SECOND)}.txt"
 
+        //FakeListener is needed to keep virtual sensors awake. This is a workaround to
+        //maintain the desired sampling rate.
+        sensorManager.registerListener(fakeListener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
         periodicRegisterer.run()
         fileWriter.run()
     }
 
     //Important! Call this on main activity (or parent service) destroy.
     fun stop(){
+        sensorManager.unregisterListener(fakeListener)
         sensorManager.unregisterListener(this)
         timingHandler.removeCallbacks(periodicRegisterer)
         measurementChannel.close()
