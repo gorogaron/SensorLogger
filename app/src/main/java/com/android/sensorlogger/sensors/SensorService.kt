@@ -12,28 +12,25 @@ import androidx.core.app.NotificationCompat
 import com.android.sensorlogger.App
 import com.android.sensorlogger.MainActivity
 import com.android.sensorlogger.R
+import com.android.sensorlogger.camera.Camera
 
 class SensorService : Service(){
 
     lateinit var accelerometer : Accelerometer
     lateinit var gyroscope : Gyroscope
     lateinit var magnetometer: Magnetometer
+    lateinit var camera : Camera
 
     override fun onCreate() {
+        //Will be called only the first time the service is created. We can stop and start it,
+        //onCreate will be called only once.
         super.onCreate()
 
         accelerometer = Accelerometer(this, "ACC")
         gyroscope = Gyroscope(this, "GYRO")
         magnetometer = Magnetometer(this, "MAG")
 
-        var sensorManager: SensorManager
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        val deviceSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)
-
-
-
-        //Will be called only the first time the service is created. We can stop and start it,
-        //onCreate will be called only once.
+        camera = Camera(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -52,6 +49,7 @@ class SensorService : Service(){
         accelerometer.run()
         gyroscope.run()
         magnetometer.run()
+        camera.startRecording()
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
@@ -60,6 +58,7 @@ class SensorService : Service(){
         accelerometer.stop()
         gyroscope.stop()
         magnetometer.stop()
+        camera.stopRecording()
         super.onDestroy()
     }
 
