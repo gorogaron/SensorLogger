@@ -29,24 +29,28 @@ import kotlin.coroutines.suspendCoroutine
 class Camera(context: Context) {
 
     var mContext = context
+
+    /**Variables for camera operations*/
     private val cameraManager = mContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private lateinit var camera: CameraDevice
     private lateinit var session: CameraCaptureSession
+    private var initSuccessful  = false
 
+    /**Log file variables*/
     private val appDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger")
-    val logDirectory = File("$appDirectory/logs")
-    private val outputFile = File(logDirectory, "vid.mp4") //TODO - modify file name
+    private val logDirectory = File("$appDirectory/logs")
+    private val fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).toString() + ".mp4"
+    private val outputFile = File(logDirectory, fileName)
 
     /**New thread for camera operations*/
     private val cameraThread = HandlerThread("CameraThread").apply { start() }
     private val cameraHandler = Handler(cameraThread.looper)
 
+    /**Variables for recording*/
     private val recorderSurface: Surface by lazy {
-        // Get a persistent Surface from MediaCodec, don't forget to release when done
         val surface = MediaCodec.createPersistentInputSurface()
-        // Prepare and release a dummy MediaRecorder with our new surface
-        // Required to allocate an appropriately sized buffer before passing the Surface as the
-        //  output target to the capture session
+
+        //TODO - do we need this dummy recorder?
         createRecorder(surface).apply {
             prepare()
             release()
@@ -66,13 +70,17 @@ class Camera(context: Context) {
     private fun initializeCamera() = GlobalScope.launch(Dispatchers.Main){
             if (cameraManager.cameraIdList.isEmpty()) {
                 Toast.makeText(mContext, "No cameras were found on the device.", Toast.LENGTH_SHORT).show()
-                //TODO - handle error
             }
             else {
-                val cameraId = cameraManager.cameraIdList[0]
-                camera = openCamera(cameraId)!! //TODO - handle if camera is null
-                session = createCaptureSession(camera, listOf(recorderSurface))
-                Log.d("CAMTAG", "Session created.")
+                try {
+                    val cameraId = cameraManager.cameraIdList[0]
+                    camera = openCamera(cameraId)!!
+                    session = createCaptureSession(camera, listOf(recorderSurface))
+                    initSuccessful = true
+                    Log.d("CAMTAG", "Session created.")
+                } catch (e: Exception) {
+                    Log.d("CAMTAG", "Error during camera initialization: $e")
+                }
             }
         }
 
@@ -125,13 +133,19 @@ class Camera(context: Context) {
 
     fun startRecording() = GlobalScope.launch(Dispatchers.IO){
         initializeCamera().join()
-        session.setRepeatingRequest(recordRequest, null, cameraHandler)
+        if (initSuccessful)
+        {
+            session.setRepeatingRequest(recordRequest, null, cameraHandler)
 
-        recorder.apply {
-            // Sets output orientation based on current sensor value at start time
-            //relativeOrientation.value?.let { setOrientationHint(it) }
-            prepare()
-            start()
+            recorder.apply {
+                // Sets output orientation based on current sensor value at start time
+                //relativeOrientation.value?.let { setOrientationHint(it) }
+                prepare()
+                start()
+            }
+        }
+        else {
+            Toast.makeText(mContext, "Error: Video is not being recorded.", Toast.LENGTH_LONG).show()
         }
     }
 
