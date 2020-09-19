@@ -73,6 +73,7 @@ class Camera(context: Context) {
             }
             else {
                 try {
+                    Log.d("CAMTAG", "Beginning camera initialization.")
                     val cameraId = cameraManager.cameraIdList[0]
                     camera = openCamera(cameraId)!!
                     session = createCaptureSession(camera, listOf(recorderSurface))

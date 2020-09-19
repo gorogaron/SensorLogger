@@ -1,5 +1,7 @@
 package com.android.sensorlogger
 
+import android.Manifest.permission.CAMERA
+import android.Manifest.permission.RECORD_AUDIO
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
@@ -29,9 +31,16 @@ class MainActivity : AppCompatActivity() {
 
         startStopButton.setOnClickListener {if (!isMeasurementRunning()) startMeasurement() else stopMeasurement()}
 
+        val permissions = arrayListOf<String>()
         if (!CameraPermissionHelper.hasCameraPermission(this)) {
-            CameraPermissionHelper.requestCameraPermission(this)
-            return
+            permissions.add(CAMERA)
+        }
+        if(!CameraPermissionHelper.hasMicPermission(this)){
+            permissions.add(RECORD_AUDIO)
+        }
+
+        if (permissions.isNotEmpty()){
+            CameraPermissionHelper.requestPermission(this, permissions)
         }
     }
 
@@ -65,7 +74,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        if (!CameraPermissionHelper.hasCameraPermission(this)) {
+        if (!CameraPermissionHelper.hasCameraPermission(this) or !CameraPermissionHelper.hasMicPermission(this)) {
             Toast.makeText(this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
                 .show()
             if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {

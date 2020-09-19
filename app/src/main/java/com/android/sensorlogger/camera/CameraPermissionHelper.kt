@@ -1,7 +1,9 @@
 package com.android.sensorlogger.camera
 
 import android.Manifest
+import android.Manifest.permission.RECORD_AUDIO
 import android.app.Activity
+import android.app.PendingIntent.getActivity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -19,10 +21,14 @@ object CameraPermissionHelper {
         return ContextCompat.checkSelfPermission(activity, CAMERA_PERMISSION) == PackageManager.PERMISSION_GRANTED
     }
 
+    fun hasMicPermission(activity: Activity) : Boolean {
+        return ContextCompat.checkSelfPermission(activity, RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+    }
+
     /** Check to see we have the necessary permissions for this app, and ask for them if we don't.  */
-    fun requestCameraPermission(activity: Activity) {
+    fun requestPermission(activity: Activity, permissions: ArrayList<String>) {
         ActivityCompat.requestPermissions(
-            activity, arrayOf(CAMERA_PERMISSION), CAMERA_PERMISSION_CODE)
+            activity, permissions.toTypedArray(), CAMERA_PERMISSION_CODE)
     }
 
     /** Check to see if we need to show the rationale for this permission.  */
