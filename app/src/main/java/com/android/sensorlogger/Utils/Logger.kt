@@ -11,7 +11,7 @@ open class Logger(context: Context, var fileNameTag : String) {
     private val appDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger")
     private val logDirectory = File("$appDirectory/logs")
     private lateinit var logFile : File
-    private lateinit var outputStreamWriter: OutputStreamWriter
+    private var outputStreamWriter: OutputStreamWriter? = null
 
     fun initLogFile(){
         if (!appDirectory.exists()) {
@@ -28,15 +28,20 @@ open class Logger(context: Context, var fileNameTag : String) {
     }
 
     fun deleteFile(){
+        closeFile()
         logFile.delete()
+        outputStreamWriter = null
     }
 
     fun writeToFile(line : String){
-        outputStreamWriter.write(line)
+        if (outputStreamWriter == null){
+            outputStreamWriter = OutputStreamWriter(FileOutputStream(logFile, true))
+        }
+        outputStreamWriter?.write(line)
     }
 
     fun closeFile(){
-        outputStreamWriter.close()
+        outputStreamWriter?.close()
     }
 
 }

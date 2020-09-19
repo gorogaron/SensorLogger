@@ -7,6 +7,7 @@ import android.hardware.SensorManager
 import android.os.Environment
 import android.os.Handler
 import android.util.Log
+import com.android.sensorlogger.Utils.Logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
@@ -19,7 +20,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-open class SensorBase(context: Context, filename_tag:String) : SensorEventListener  {
+open class SensorBase(context: Context, filename_tag:String) : SensorEventListener, Logger(context, filename_tag)  {
     //Sensor variables
     var sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     lateinit var sensor : Sensor
@@ -33,7 +34,6 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
 
     //Periodic handler for logging
     private val fileWriter = Runnable { writeToFile(context) }
-    private var fileName = filename_tag
     private val fileSavingRate = 10000  //Period time of file saving in milliseconds
     private val measurementChannel = Channel<SensorEvent>(100)
 
@@ -55,20 +55,7 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
         try {
             GlobalScope.launch(Dispatchers.IO){
 
-                val appDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger")
-                val logDirectory = File("$appDirectory/logs")
-                val logFile = File(logDirectory, fileName)
-                if (!appDirectory.exists()) {
-                    appDirectory.mkdir()
-                }
-                if (!logDirectory.exists()) {
-                    logDirectory.mkdir()
-                }
-                if (!logFile.exists()) {
-                    logFile.createNewFile()
-                }
-
-                var outputStreamWriter = OutputStreamWriter(FileOutputStream(logFile, true))
+                initLogFile()
                 var iterationCounter = 0
 
                 for (event in measurementChannel) {
@@ -76,17 +63,16 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
                     val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) +
                                ":${event.values[0]};${event.values[1]};${event.values[2]}\n"
                     Log.d("Sensor", line)
-                    outputStreamWriter.write(line)
+                    writeToFile(line)
 
                     iterationCounter += 1
                     if (iterationCounter > (fileSavingRate/sampleRateMillis).toInt()){
                         Log.d("Sensor", "File saved.")
                         iterationCounter = 0
-                        outputStreamWriter.close() //Save file
-                        outputStreamWriter = OutputStreamWriter(FileOutputStream(logFile, true))
+                        closeFile()
                     }
                 }
-                outputStreamWriter.close()
+                closeFile()
             }
         } catch (e: IOException) {
             Log.e("Exception", "File write failed: $e")
@@ -94,9 +80,6 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
     }
 
     fun run(){
-        //e.g. ACC_2020_09_14_13_23_22.csv
-        fileName = fileName + "_" + SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US).format(Date()) + ".txt"
-
         //FakeListener is needed to keep virtual sensors awake. This is a workaround to
         //maintain the desired sampling rate.
         sensorManager.registerListener(fakeListener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
