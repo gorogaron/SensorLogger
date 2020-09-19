@@ -9,6 +9,7 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import com.agrolytics.agrolytics_android.utils.Gps
 import com.android.sensorlogger.App
 import com.android.sensorlogger.MainActivity
 import com.android.sensorlogger.R
@@ -20,6 +21,7 @@ class SensorService : Service(){
     lateinit var gyroscope : Gyroscope
     lateinit var magnetometer: Magnetometer
     lateinit var camera : Camera
+    lateinit var gps : Gps
 
     override fun onCreate() {
         //Will be called only the first time the service is created. We can stop and start it,
@@ -29,7 +31,7 @@ class SensorService : Service(){
         accelerometer = Accelerometer(this, "ACC")
         gyroscope = Gyroscope(this, "GYRO")
         magnetometer = Magnetometer(this, "MAG")
-
+        gps = Gps(this)
         camera = Camera(this)
     }
 
@@ -50,6 +52,7 @@ class SensorService : Service(){
         gyroscope.run()
         magnetometer.run()
         camera.startRecording()
+        gps.run()
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
@@ -58,6 +61,7 @@ class SensorService : Service(){
         accelerometer.stop()
         gyroscope.stop()
         magnetometer.stop()
+        gps.stop()
         camera.stopRecording()
         super.onDestroy()
     }

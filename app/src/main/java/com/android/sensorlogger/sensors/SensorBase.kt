@@ -15,6 +15,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStreamWriter
 import java.lang.Runnable
+import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -72,7 +73,8 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
 
                 for (event in measurementChannel) {
                     //Loop breaks when measurementChannel.close() is called
-                    val line = "${event.values[0]};${event.values[1]};${event.values[2]}\n"
+                    val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) +
+                               ":${event.values[0]};${event.values[1]};${event.values[2]}\n"
                     Log.d("Sensor", line)
                     outputStreamWriter.write(line)
 
@@ -92,16 +94,8 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
     }
 
     fun run(){
-        val calendar = Calendar.getInstance()
-
         //e.g. ACC_2020_09_14_13_23_22.csv
-        fileName = fileName +
-                "_${calendar.get(Calendar.YEAR)}_" +
-                "${calendar.get(Calendar.MONTH)}_" +
-                "${calendar.get(Calendar.DAY_OF_MONTH)}_" +
-                "${calendar.get(Calendar.HOUR_OF_DAY)}_" +
-                "${calendar.get(Calendar.MINUTE)}_" +
-                "${calendar.get(Calendar.SECOND)}.txt"
+        fileName = fileName + "_" + SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US).format(Date()) + ".txt"
 
         //FakeListener is needed to keep virtual sensors awake. This is a workaround to
         //maintain the desired sampling rate.

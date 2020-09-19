@@ -39,7 +39,7 @@ class Camera(context: Context) {
     /**Log file variables*/
     private val appDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger")
     private val logDirectory = File("$appDirectory/logs")
-    private val fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).toString() + ".mp4"
+    private val fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ".mp4"
     private val outputFile = File(logDirectory, fileName)
 
     /**New thread for camera operations*/
