@@ -29,10 +29,10 @@ class SensorService : Service(){
         super.onCreate()
 
         accelerometer = Accelerometer(this, "ACC")
-        gyroscope = Gyroscope(this, "GYRO")
-        magnetometer = Magnetometer(this, "MAG")
-        gps = Gps(this)
-        camera = Camera(this)
+        //gyroscope = Gyroscope(this, "GYRO")
+        //magnetometer = Magnetometer(this, "MAG")
+        //gps = Gps(this)
+        //camera = Camera(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -49,20 +49,20 @@ class SensorService : Service(){
 
         startForeground(1, notification)
         accelerometer.run()
-        gyroscope.run()
-        magnetometer.run()
-        camera.startRecording()
-        gps.run()
+        //gyroscope.run()
+        //magnetometer.run()
+        //camera.startRecording()
+        //gps.run()
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
 
     override fun onDestroy() {
         accelerometer.stop()
-        gyroscope.stop()
-        magnetometer.stop()
-        gps.stop()
-        camera.stopRecording()
+        //gyroscope.stop()
+        //magnetometer.stop()
+        //gps.stop()
+        //camera.stopRecording()
         super.onDestroy()
     }
 

@@ -25,7 +25,7 @@ import java.io.OutputStreamWriter
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Gps(private val context: Context) : LocationListener, Logger(context, "GPS")
+class Gps(override var context: Context) : LocationListener, Logger(context, "GPS")
 {
     private val locationManager = context.getSystemService(LOCATION_SERVICE) as LocationManager
 

@@ -62,7 +62,7 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
                     //Loop breaks when measurementChannel.close() is called
                     val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) +
                                ":${event.values[0]};${event.values[1]};${event.values[2]}\n"
-                    Log.d("Sensor", line)
+                    //Log.d("Sensor", line)
                     writeToFile(line)
 
                     iterationCounter += 1
@@ -82,6 +82,7 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
     fun run(){
         //FakeListener is needed to keep virtual sensors awake. This is a workaround to
         //maintain the desired sampling rate.
+        startPeriodicUpload()
         sensorManager.registerListener(fakeListener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
         periodicRegisterer.run()
         fileWriter.run()

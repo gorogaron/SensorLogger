@@ -1,17 +1,50 @@
 package com.android.sensorlogger.Utils
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import com.android.sensorlogger.App
+import com.android.sensorlogger.networking.ApiService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.text.SimpleDateFormat
 import java.util.*
 
-open class Logger(context: Context, var fileNameTag : String) {
+open class Logger(open var context: Context, var fileNameTag : String) {
     private val appDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger")
     private val logDirectory = File("$appDirectory/logs")
     private lateinit var logFile : File
     private var outputStreamWriter: OutputStreamWriter? = null
+
+    private val uploadRate : Long = 30000
+    private val uploadHandler = Handler()
+    private var uploadTask = Runnable { uploadFile() }
+
+    fun startPeriodicUpload(){
+        uploadHandler.postDelayed(uploadTask, uploadRate)
+    }
+
+    private fun uploadFile(){
+        Log.d("LOG", "Started uploading")
+
+        GlobalScope.launch(Dispatchers.IO){
+            val fileToUpload = logFile
+
+            //Create new logfile
+            initLogFile()
+
+            App.ApiService.uploadFile(fileToUpload, context)
+
+            //Delete old file
+            fileToUpload.delete()
+            uploadHandler.postDelayed(uploadTask, uploadRate)
+        }
+    }
 
     fun initLogFile(){
         if (!appDirectory.exists()) {
@@ -42,6 +75,7 @@ open class Logger(context: Context, var fileNameTag : String) {
 
     fun closeFile(){
         outputStreamWriter?.close()
+        outputStreamWriter = null
     }
 
 }
