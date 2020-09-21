@@ -1,19 +1,15 @@
-package com.android.sensorlogger.sensors
+package com.android.sensorlogger
 
-import android.app.Activity
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
-import android.hardware.Sensor
-import android.hardware.SensorManager
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.agrolytics.agrolytics_android.utils.Gps
-import com.android.sensorlogger.App
-import com.android.sensorlogger.MainActivity
-import com.android.sensorlogger.R
 import com.android.sensorlogger.camera.Camera
+import com.android.sensorlogger.sensors.Accelerometer
+import com.android.sensorlogger.sensors.Gyroscope
+import com.android.sensorlogger.sensors.Magnetometer
 
 class SensorService : Service(){
 
@@ -28,10 +24,10 @@ class SensorService : Service(){
         //onCreate will be called only once.
         super.onCreate()
 
-        accelerometer = Accelerometer(this, "ACC")
+        //accelerometer = Accelerometer(this, "ACC")
         //gyroscope = Gyroscope(this, "GYRO")
         //magnetometer = Magnetometer(this, "MAG")
-        //gps = Gps(this)
+        gps = Gps(this)
         //camera = Camera(this)
     }
 
@@ -48,20 +44,20 @@ class SensorService : Service(){
             .build()
 
         startForeground(1, notification)
-        accelerometer.run()
+        //accelerometer.run()
         //gyroscope.run()
         //magnetometer.run()
         //camera.startRecording()
-        //gps.run()
+        gps.run()
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
 
     override fun onDestroy() {
-        accelerometer.stop()
+        //accelerometer.stop()
         //gyroscope.stop()
         //magnetometer.stop()
-        //gps.stop()
+        gps.stop()
         //camera.stopRecording()
         super.onDestroy()
     }

@@ -29,7 +29,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".sensors.SensorService"/>
+        <service android:name=".SensorService"/>
 
         <provider
             android:name="androidx.core.content.FileProvider"

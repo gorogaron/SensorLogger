@@ -73,6 +73,7 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
                     }
                 }
                 closeFile()
+                stopPeriodicUpload()
             }
         } catch (e: IOException) {
             Log.e("Exception", "File write failed: $e")

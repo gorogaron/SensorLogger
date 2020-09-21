@@ -25,7 +25,7 @@ import java.io.OutputStreamWriter
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Gps(override var context: Context) : LocationListener, Logger(context, "GPS")
+class Gps(context: Context) : LocationListener, Logger(context, "GPS")
 {
     private val locationManager = context.getSystemService(LOCATION_SERVICE) as LocationManager
 
@@ -34,11 +34,13 @@ class Gps(override var context: Context) : LocationListener, Logger(context, "GP
         if (PermissionHelper.hasGpsPermission(context)) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 0f, this)
             initLogFile()
+            startPeriodicUpload()
         }
     }
 
     fun stop(){
         locationManager.removeUpdates(this)
+        stopPeriodicUpload()
     }
 
     override fun onLocationChanged(loc: Location) {

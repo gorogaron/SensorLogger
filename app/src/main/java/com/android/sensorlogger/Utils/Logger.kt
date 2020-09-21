@@ -9,6 +9,7 @@ import com.android.sensorlogger.networking.ApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
@@ -27,6 +28,11 @@ open class Logger(open var context: Context, var fileNameTag : String) {
 
     fun startPeriodicUpload(){
         uploadHandler.postDelayed(uploadTask, uploadRate)
+    }
+
+    fun stopPeriodicUpload(){
+        //Remove previous callback
+        uploadHandler.removeCallbacks(uploadTask)
     }
 
     private fun uploadFile(){
