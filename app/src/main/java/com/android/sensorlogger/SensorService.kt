@@ -10,6 +10,7 @@ import com.android.sensorlogger.camera.Camera
 import com.android.sensorlogger.sensors.Accelerometer
 import com.android.sensorlogger.sensors.Gyroscope
 import com.android.sensorlogger.sensors.Magnetometer
+import com.android.sensorlogger.wifi.Wifi
 
 class SensorService : Service(){
 
@@ -18,6 +19,7 @@ class SensorService : Service(){
     lateinit var magnetometer: Magnetometer
     lateinit var camera : Camera
     lateinit var gps : Gps
+    lateinit var wifi : Wifi
 
     override fun onCreate() {
         //Will be called only the first time the service is created. We can stop and start it,
@@ -27,8 +29,9 @@ class SensorService : Service(){
         //accelerometer = Accelerometer(this, "ACC")
         //gyroscope = Gyroscope(this, "GYRO")
         //magnetometer = Magnetometer(this, "MAG")
-        gps = Gps(this)
+        //gps = Gps(this)
         //camera = Camera(this)
+        wifi = Wifi(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -44,20 +47,22 @@ class SensorService : Service(){
             .build()
 
         startForeground(1, notification)
+        wifi.run()
         //accelerometer.run()
         //gyroscope.run()
         //magnetometer.run()
         //camera.startRecording()
-        gps.run()
+        //gps.run()
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
 
     override fun onDestroy() {
+        wifi.stop()
         //accelerometer.stop()
         //gyroscope.stop()
         //magnetometer.stop()
-        gps.stop()
+        //gps.stop()
         //camera.stopRecording()
         super.onDestroy()
     }

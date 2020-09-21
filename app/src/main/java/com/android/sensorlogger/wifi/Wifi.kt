@@ -6,9 +6,15 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.wifi.WifiManager
 import android.os.Handler
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import com.android.sensorlogger.Utils.Logger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class Wifi(context : Context) : Logger(context, "WIFI") {
     private var wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -26,24 +32,12 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
         }
     }
 
-    fun scan(){
+    private fun scan(){
         val success = wifiManager.startScan()
         if (!success) {
             scanFailure()
         }
         scanHandler.postDelayed(scanRunnable, 15000)
-    }
-
-    fun run(){
-        if (!wifiManager.isWifiEnabled){
-            Toast.makeText(context, "Wifi is turned off, SSIDs will not be logged.", Toast.LENGTH_LONG).show()
-        }
-        else{
-            val intentFilter = IntentFilter()
-            intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
-            context.registerReceiver(wifiScanReceiver, intentFilter)
-            scan()
-        }
     }
 
     fun scanFailure(){
@@ -52,7 +46,32 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
 
     private fun scanSuccess() {
         val results = wifiManager.scanResults
-        results.forEach { Log.d("WIFI", it.SSID) }
+        GlobalScope.launch(Dispatchers.IO) {
+            results.forEach {
+                val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ":${it.SSID}\n"
+                writeToFile(line)
+            }
+            closeFile()
+        }
+    }
+
+    fun run(){
+        if (!wifiManager.isWifiEnabled){
+            Toast.makeText(context, "Wifi is turned off, SSIDs will not be logged.", Toast.LENGTH_LONG).show()
+        }
+        else{
+            initLogFile()
+            startPeriodicUpload()
+            val intentFilter = IntentFilter()
+            intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
+            context.registerReceiver(wifiScanReceiver, intentFilter)
+            scan()
+        }
+    }
+
+    fun stop(){
+        scanHandler.removeCallbacks(scanRunnable)
+        stopPeriodicUpload()
     }
 
 }
