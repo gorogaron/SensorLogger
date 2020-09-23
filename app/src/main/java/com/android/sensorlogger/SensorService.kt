@@ -26,12 +26,12 @@ class SensorService : Service(){
         //onCreate will be called only once.
         super.onCreate()
 
-        //accelerometer = Accelerometer(this, "ACC")
+        accelerometer = Accelerometer(this, "ACC")
         //gyroscope = Gyroscope(this, "GYRO")
         //magnetometer = Magnetometer(this, "MAG")
         //gps = Gps(this)
-        //camera = Camera(this)
-        wifi = Wifi(this)
+        camera = Camera(this)
+        //wifi = Wifi(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -47,23 +47,23 @@ class SensorService : Service(){
             .build()
 
         startForeground(1, notification)
-        wifi.run()
-        //accelerometer.run()
+        //wifi.run()
+        accelerometer.run()
         //gyroscope.run()
         //magnetometer.run()
-        //camera.startRecording()
+        camera.start()
         //gps.run()
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
 
     override fun onDestroy() {
-        wifi.stop()
-        //accelerometer.stop()
+        //wifi.stop()
+        accelerometer.stop()
         //gyroscope.stop()
         //magnetometer.stop()
         //gps.stop()
-        //camera.stopRecording()
+        camera.stop()
         super.onDestroy()
     }
 

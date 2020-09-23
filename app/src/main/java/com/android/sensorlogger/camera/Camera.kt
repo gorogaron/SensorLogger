@@ -16,6 +16,7 @@ import android.util.Range
 import android.view.Surface
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import com.android.sensorlogger.App
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -39,8 +40,8 @@ class Camera(context: Context) {
     /**Log file variables*/
     private val appDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger")
     private val logDirectory = File("$appDirectory/logs")
-    private val fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ".mp4"
-    private val outputFile = File(logDirectory, fileName)
+    private var fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ".mp4"
+    private var outputFile = File(logDirectory, fileName)
 
     /**New thread for camera operations*/
     private val cameraThread = HandlerThread("CameraThread").apply { start() }
@@ -66,6 +67,10 @@ class Camera(context: Context) {
     }
 
     private val recorder: MediaRecorder by lazy { createRecorder(recorderSurface) }
+    private var recording = false
+
+    private val recordHandler = Handler()
+    private val movementChecker = Runnable { movementListener() }
 
     private fun initializeCamera() = GlobalScope.launch(Dispatchers.Main){
             if (cameraManager.cameraIdList.isEmpty()) {
@@ -132,12 +137,23 @@ class Camera(context: Context) {
         setInputSurface(surface)
     }
 
-    fun startRecording() = GlobalScope.launch(Dispatchers.IO){
-        initializeCamera().join()
-        if (initSuccessful)
-        {
-            session.setRepeatingRequest(recordRequest, null, cameraHandler)
+    private fun movementListener(){
+        if (App.inMovement && !recording){
+            startRecording()
+            Log.d("CAM", "User is in movement, started recording.")
+        }
+        if (!App.inMovement && recording){
+            stopRecording()
+            Log.d("CAM", "User has not moved for 30 seconds, stopped recording.")
+        }
 
+        recordHandler.postDelayed(movementChecker,1000)
+    }
+
+    private fun startRecording() = GlobalScope.launch(Dispatchers.Default){
+        if (initSuccessful) {
+            recording = true
+            session.setRepeatingRequest(recordRequest, null, cameraHandler)
             recorder.apply {
                 // Sets output orientation based on current sensor value at start time
                 //relativeOrientation.value?.let { setOrientationHint(it) }
@@ -151,7 +167,26 @@ class Camera(context: Context) {
     }
 
     fun stopRecording(){
+        recording = false
+        recordHandler.removeCallbacks(movementChecker)
         recorder.stop()
+
+        //New file:
+        fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ".mp4"
+        outputFile = File(logDirectory, fileName)
+        recorder.setOutputFile(outputFile)
+    }
+
+    fun start() = GlobalScope.launch(Dispatchers.IO){
+        initializeCamera().join()
+        recordHandler.postDelayed(movementChecker, 1000)
+    }
+
+    fun stop(){
+        recordHandler.removeCallbacks(movementChecker)
+        if (recording){
+            recorder.stop()
+        }
     }
 
     companion object Config {

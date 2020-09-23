@@ -13,6 +13,7 @@ class App : Application() {
       var CHANNEL_ID = "ServiceChannel"
       var logFileList = ArrayList<File>()
       var ApiService = ApiService()
+      var inMovement = false
     }
 
     override fun onCreate() {
