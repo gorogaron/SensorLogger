@@ -18,16 +18,17 @@ class ApiService {
     val api = SensorLoggerApi.create()
 
     suspend fun uploadFile(file: File, context: Context){
+        Log.d("API", "Started uploading file: ${file.name}")
         val fileUri = FileProvider.getUriForFile(context, context.packageName + ".provider", file)
 
         val filePart = file.asRequestBody(context.contentResolver.getType(fileUri)!!.toMediaTypeOrNull())
         val filePartRequest = MultipartBody.Part.createFormData("files", file.name, filePart)
         var response = api.uploadFile(filePartRequest).awaitResponse()
         if (response.isSuccessful){
-            Log.d("LOG", "Sending successfull")
+            Log.d("API", "Uploading successful: ${file.name}")
         }
         else {
-            Log.d("LOG", "Sending failed")
+            Log.d("API", "Failed to upload file: ${file.name}")
         }
     }
 }

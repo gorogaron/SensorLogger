@@ -12,16 +12,20 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class Accelerometer(context: Context, fileName: String) : SensorEventListener, SensorBase(context, fileName) {
+    private val movementDelay : Long = 30000
     private val movementHandler = Handler()
-    private val movementResetRunnable = Runnable{ App.inMovement = false }
+    private val movementResetRunnable = Runnable{
+        App.inMovement = false
+        Log.d("ACC", "Not moved for ${movementDelay/1000} seconds. Resetting movement state.")
+    }
 
     init {
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
         sampleRateMillis = 500
 
-        x_threshold = Config.ACC_X_THRESHOLD
-        y_threshold = Config.ACC_Y_THRESHOLD
-        z_threshold = Config.ACC_Z_THRESHOLD
+        x_threshold = Config.Sensor.ACC_X_THRESHOLD
+        y_threshold = Config.Sensor.ACC_Y_THRESHOLD
+        z_threshold = Config.Sensor.ACC_Z_THRESHOLD
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -29,17 +33,14 @@ class Accelerometer(context: Context, fileName: String) : SensorEventListener, S
         if(thresholdExceeded(event)){
             if (App.inMovement){
                 movementHandler.removeCallbacks(movementResetRunnable)
-                movementHandler.postDelayed(movementResetRunnable, 30000)
+                movementHandler.postDelayed(movementResetRunnable, movementDelay)
                 Log.d("ACC", "Threshold exceeded, reset runnable.")
             }
             else{
                 App.inMovement = true
-                movementHandler.postDelayed(movementResetRunnable, 30000)
+                movementHandler.postDelayed(movementResetRunnable, movementDelay)
                 Log.d("ACC", "Threshold exceeded, started runnable")
             }
-        }
-        else{
-            Log.d("ACC", "Threshold not exceeded.")
         }
 
     }

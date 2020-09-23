@@ -22,7 +22,7 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     private lateinit var logFile : File
     private var outputStreamWriter: OutputStreamWriter? = null
 
-    private val uploadRate : Long = 30000
+    private val uploadRate : Long = 300 * 1000
     private val uploadHandler = Handler()
     private var uploadTask = Runnable { uploadFile() }
 
@@ -36,8 +36,6 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     }
 
     private fun uploadFile(){
-        Log.d("LOG", "Started uploading")
-
         GlobalScope.launch(Dispatchers.IO){
             val fileToUpload = logFile
 

@@ -17,6 +17,7 @@ import android.view.Surface
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.android.sensorlogger.App
+import com.android.sensorlogger.Utils.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -43,6 +44,10 @@ class Camera(context: Context) {
     private var fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ".mp4"
     private var outputFile = File(logDirectory, fileName)
 
+    private val uploadHandler = Handler()
+    private var uploadTask = Runnable { uploadVideo(true) }
+    private var uploadPeriod : Long = 300 * 1000
+
     /**New thread for camera operations*/
     private val cameraThread = HandlerThread("CameraThread").apply { start() }
     private val cameraHandler = Handler(cameraThread.looper)
@@ -62,11 +67,11 @@ class Camera(context: Context) {
     private val recordRequest: CaptureRequest by lazy {
         session.device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
             addTarget(recorderSurface)
-            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(FPS, FPS))
+            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(Config.Camera.FPS, Config.Camera.FPS))
         }.build()
     }
 
-    private val recorder: MediaRecorder by lazy { createRecorder(recorderSurface) }
+    private var recorder: MediaRecorder = createRecorder(recorderSurface)
     private var recording = false
 
     private val recordHandler = Handler()
@@ -129,22 +134,25 @@ class Camera(context: Context) {
         setVideoSource(MediaRecorder.VideoSource.SURFACE)
         setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
         setOutputFile(outputFile)
-        setVideoEncodingBitRate(RECORDER_VIDEO_BITRATE)
-        setVideoFrameRate(FPS)
-        setVideoSize(WIDTH, HEIGHT)
-        setVideoEncoder(VIDEO_ENCODER)
-        setAudioEncoder(AUDIO_ENCODER)
+        setVideoEncodingBitRate(Config.Camera.RECORDER_VIDEO_BITRATE)
+        setVideoFrameRate(Config.Camera.FPS)
+        setVideoSize(Config.Camera.WIDTH, Config.Camera.HEIGHT)
+        setVideoEncoder(Config.Camera.VIDEO_ENCODER)
+        setAudioEncoder(Config.Camera.AUDIO_ENCODER)
         setInputSurface(surface)
     }
 
     private fun movementListener(){
         if (App.inMovement && !recording){
             startRecording()
+            uploadHandler.postDelayed(uploadTask, uploadPeriod)
             Log.d("CAM", "User is in movement, started recording.")
         }
         if (!App.inMovement && recording){
             stopRecording()
             Log.d("CAM", "User has not moved for 30 seconds, stopped recording.")
+            uploadHandler.removeCallbacks(uploadTask)
+            uploadVideo(false)
         }
 
         recordHandler.postDelayed(movementChecker,1000)
@@ -153,6 +161,12 @@ class Camera(context: Context) {
     private fun startRecording() = GlobalScope.launch(Dispatchers.Default){
         if (initSuccessful) {
             recording = true
+
+            //New file:
+            fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ".mp4"
+            outputFile = File(logDirectory, fileName)
+            recorder = createRecorder(recorderSurface)
+
             session.setRepeatingRequest(recordRequest, null, cameraHandler)
             recorder.apply {
                 // Sets output orientation based on current sensor value at start time
@@ -170,11 +184,6 @@ class Camera(context: Context) {
         recording = false
         recordHandler.removeCallbacks(movementChecker)
         recorder.stop()
-
-        //New file:
-        fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ".mp4"
-        outputFile = File(logDirectory, fileName)
-        recorder.setOutputFile(outputFile)
     }
 
     fun start() = GlobalScope.launch(Dispatchers.IO){
@@ -184,17 +193,29 @@ class Camera(context: Context) {
 
     fun stop(){
         recordHandler.removeCallbacks(movementChecker)
+        uploadHandler.removeCallbacks(uploadTask)
         if (recording){
-            recorder.stop()
+            stopRecording()
+            uploadVideo(false)
         }
     }
 
-    companion object Config {
-        var FPS = 24
-        var VIDEO_ENCODER = MediaRecorder.VideoEncoder.H264
-        var AUDIO_ENCODER = MediaRecorder.AudioEncoder.AAC
-        var WIDTH = 1280
-        var HEIGHT = 720
-        val RECORDER_VIDEO_BITRATE: Int = 10_000_000
+    private fun uploadVideo(startNewSession: Boolean){
+        Log.d("CAM", "Started uploading video.")
+
+        GlobalScope.launch(Dispatchers.IO){
+            val fileToUpload = outputFile
+
+            App.ApiService.uploadFile(fileToUpload, mContext)
+
+            //Delete old file
+            fileToUpload.delete()
+
+            if (startNewSession){
+                stopRecording()
+                startRecording()
+                uploadHandler.postDelayed(uploadTask, uploadPeriod)
+            }
+        }
     }
 }
