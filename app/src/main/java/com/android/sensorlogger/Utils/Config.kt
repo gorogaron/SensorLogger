@@ -19,11 +19,9 @@ object Config {
     }
 
     object Camera {
-        var FPS = 24
         var VIDEO_ENCODER = MediaRecorder.VideoEncoder.H264
         var AUDIO_ENCODER = MediaRecorder.AudioEncoder.AAC
-        var WIDTH = 1280
-        var HEIGHT = 720
         val RECORDER_VIDEO_BITRATE: Int = 10_000_000
     }
+
 }

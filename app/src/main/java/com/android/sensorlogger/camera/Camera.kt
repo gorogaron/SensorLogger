@@ -67,7 +67,7 @@ class Camera(context: Context) {
     private val recordRequest: CaptureRequest by lazy {
         session.device.createCaptureRequest(CameraDevice.TEMPLATE_RECORD).apply {
             addTarget(recorderSurface)
-            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(Config.Camera.FPS, Config.Camera.FPS))
+            set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(App.sessionManager.getFps(), App.sessionManager.getFps()))
         }.build()
     }
 
@@ -135,8 +135,8 @@ class Camera(context: Context) {
         setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
         setOutputFile(outputFile)
         setVideoEncodingBitRate(Config.Camera.RECORDER_VIDEO_BITRATE)
-        setVideoFrameRate(Config.Camera.FPS)
-        setVideoSize(Config.Camera.WIDTH, Config.Camera.HEIGHT)
+        setVideoFrameRate(App.sessionManager.getFps())
+        setVideoSize(App.sessionManager.getWidth(), App.sessionManager.getHeight())
         setVideoEncoder(Config.Camera.VIDEO_ENCODER)
         setAudioEncoder(Config.Camera.AUDIO_ENCODER)
         setInputSurface(surface)

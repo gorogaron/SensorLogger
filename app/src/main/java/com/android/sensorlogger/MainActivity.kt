@@ -10,13 +10,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import com.android.sensorlogger.Utils.PermissionHelper
+import com.android.sensorlogger.camera.CameraSettings
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        
 
         if (isMeasurementRunning()) {
             animationView.visibility = View.VISIBLE
@@ -41,6 +41,11 @@ class MainActivity : AppCompatActivity() {
 
         if (permissions.isNotEmpty()){
             PermissionHelper.requestPermission(this, permissions)
+        }
+
+        cameraSettingButton.setOnClickListener {
+            val cameraSettings = CameraSettings(this)
+            cameraSettings.OpenCameraSettings()
         }
     }
 

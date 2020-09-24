@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.getSystemService
+import com.android.sensorlogger.App
 import com.android.sensorlogger.Utils.Logger
 import com.android.sensorlogger.Utils.PermissionHelper
 import kotlinx.coroutines.Dispatchers
@@ -47,12 +48,14 @@ class Gps(context: Context) : LocationListener, Logger(context, "GPS")
         Log.d("GPS", "${loc.latitude} ${loc.longitude}")
 
         //Low rate, so can be done in every iteration
-        GlobalScope.launch(Dispatchers.IO) {
-            val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ":" +
-                    loc.latitude.toString() + ";"
-                    loc.longitude.toString() + "\n"
-            writeToFile(line)
-            closeFile()
+        if (App.inMovement){
+            GlobalScope.launch(Dispatchers.IO) {
+                val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ":" +
+                        loc.latitude.toString() + ";"
+                        loc.longitude.toString() + "\n"
+                writeToFile(line)
+                closeFile()
+            }
         }
     }
 
