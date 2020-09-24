@@ -12,10 +12,13 @@ import java.io.File
 
 class App : Application() {
     companion object {
-      var CHANNEL_ID = "ServiceChannel"
-      var ApiService = ApiService()
-      var inMovement = false
-      lateinit var sessionManager : SessionManager
+        var CHANNEL_ID = "ServiceChannel"
+        var ApiService = ApiService()
+        var inMovement = false
+        lateinit var sessionManager : SessionManager
+
+        var lastUpload = "-"
+        var networkTraffic = 0.0
     }
 
     override fun onCreate() {

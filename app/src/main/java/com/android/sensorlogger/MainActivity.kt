@@ -5,6 +5,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -14,15 +15,22 @@ import com.android.sensorlogger.camera.CameraSettings
 
 class MainActivity : AppCompatActivity() {
 
+    var statisticsHandler = Handler()
+    var statisticsUpdater = Runnable { updateStatistics() }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         if (isMeasurementRunning()) {
             animationView.visibility = View.VISIBLE
+            cameraSettingButton.visibility = View.GONE
+            uploadSettingButton.visibility = View.GONE
             startStopButton.text = "STOP"
         } else {
             animationView.visibility = View.GONE
+            cameraSettingButton.visibility = View.VISIBLE
+            uploadSettingButton.visibility = View.VISIBLE
         }
 
         startStopButton.setOnClickListener {if (!isMeasurementRunning()) startMeasurement() else stopMeasurement()}
@@ -47,11 +55,16 @@ class MainActivity : AppCompatActivity() {
             val cameraSettings = CameraSettings(this)
             cameraSettings.OpenCameraSettings()
         }
+
+        statisticsHandler.postDelayed(statisticsUpdater, 1000)
     }
 
     private fun startMeasurement(){
         startStopButton.text = "STOP"
         animationView.visibility = View.VISIBLE
+        cameraSettingButton.visibility = View.GONE
+        uploadSettingButton.visibility = View.GONE
+
         var serviceIntent = Intent(this, SensorService::class.java)
         startService(serviceIntent)
     }
@@ -59,6 +72,8 @@ class MainActivity : AppCompatActivity() {
     private fun stopMeasurement(){
         startStopButton.text = "START"
         animationView.visibility = View.GONE
+        cameraSettingButton.visibility = View.VISIBLE
+        uploadSettingButton.visibility = View.VISIBLE
 
         var serviceIntent = Intent(this, SensorService::class.java)
         stopService(serviceIntent)
@@ -89,5 +104,16 @@ class MainActivity : AppCompatActivity() {
             finish()
         }
         recreate()
+    }
+
+    private fun updateStatistics(){
+        last_upload.text = App.lastUpload
+        network_traffic.text = "${App.networkTraffic} MByte"
+        statisticsHandler.postDelayed(statisticsUpdater, 1000)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        statisticsHandler.removeCallbacks(statisticsUpdater)
     }
 }

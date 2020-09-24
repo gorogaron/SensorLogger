@@ -1,17 +1,16 @@
 package com.android.sensorlogger.networking
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
-import okhttp3.MediaType
+import com.android.sensorlogger.App
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import retrofit2.await
 import retrofit2.awaitResponse
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 class ApiService {
     val api = SensorLoggerApi.create()
@@ -25,9 +24,21 @@ class ApiService {
         var response = api.uploadFile(filePartRequest).awaitResponse()
         if (response.isSuccessful){
             Log.d("API", "Uploading successful: ${file.name}")
+
+            var date = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date())
+            App.lastUpload = "${file.name} ($date)"
+            App.networkTraffic = App.networkTraffic + (file.length().toDouble()/(1024*1024)).round(2)
+
         }
         else {
             Log.d("API", "Failed to upload file: ${file.name}")
         }
     }
+}
+
+//TODO: Move this method to appropriate place
+private fun Double.round(i: Int): Double {
+    var multiplier = 1.0
+    repeat(i) { multiplier *= 10 }
+    return kotlin.math.round(this * multiplier) / multiplier
 }
