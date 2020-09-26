@@ -13,7 +13,7 @@ import java.io.File
 class App : Application() {
     companion object {
         var CHANNEL_ID = "ServiceChannel"
-        var ApiService = ApiService()
+        lateinit var ApiService : ApiService
         var inMovement = false
         lateinit var sessionManager : SessionManager
 
@@ -25,6 +25,7 @@ class App : Application() {
         super.onCreate()
         createNotificationChannel()
         sessionManager = SessionManager(applicationContext)
+        ApiService = ApiService()
     }
 
     private fun createNotificationChannel(){

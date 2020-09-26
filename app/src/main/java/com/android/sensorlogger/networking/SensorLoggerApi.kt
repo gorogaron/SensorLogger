@@ -2,6 +2,7 @@ package com.android.sensorlogger.networking
 
 import android.hardware.Sensor
 import android.util.Log
+import com.android.sensorlogger.App
 import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -25,7 +26,7 @@ interface SensorLoggerApi {
         fun create(): SensorLoggerApi {
             val retrofit = Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("https://palacz.my.to/")
+                .baseUrl(App.sessionManager.getUrl()!!)
                 .build()
             return retrofit.create(SensorLoggerApi::class.java)
         }
