@@ -7,14 +7,13 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="API URL (format: )"
+        android:text="API URL (format example: https://palacz.my.to/)"
         android:textSize="18sp"/>
     <EditText
         android:id="@+id/api_url_edittext"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autofillHints="24"
-        android:inputType="number"/>
+        android:autofillHints="24"/>
 
     <View
         android:layout_width="match_parent"

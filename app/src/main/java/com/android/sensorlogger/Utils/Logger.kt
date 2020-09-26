@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.android.sensorlogger.App
+import com.android.sensorlogger.Utils.Util.isOnline
 import com.android.sensorlogger.networking.ApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -22,7 +23,7 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     private lateinit var logFile : File
     private var outputStreamWriter: OutputStreamWriter? = null
 
-    private val uploadRate : Long = 300 * 1000
+    private val uploadRate : Long = App.sessionManager.getUploadRate().toLong() * 1000
     private val uploadHandler = Handler()
     private var uploadTask = Runnable { uploadFile() }
 
@@ -37,16 +38,18 @@ open class Logger(open var context: Context, var fileNameTag : String) {
 
     private fun uploadFile(){
         GlobalScope.launch(Dispatchers.IO){
-            val fileToUpload = logFile
+            if (isOnline()){
+                val fileToUpload = logFile
 
-            //Create new logfile
-            initLogFile()
+                //Create new logfile
+                initLogFile()
 
-            App.ApiService.uploadFile(fileToUpload, context)
+                App.ApiService.uploadFile(fileToUpload, context)
 
-            //Delete old file
-            fileToUpload.delete()
-            uploadHandler.postDelayed(uploadTask, uploadRate)
+                //Delete old file
+                fileToUpload.delete()
+                uploadHandler.postDelayed(uploadTask, uploadRate)
+            }
         }
     }
 

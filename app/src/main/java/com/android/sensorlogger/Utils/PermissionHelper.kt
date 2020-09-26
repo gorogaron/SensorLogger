@@ -32,8 +32,12 @@ object PermissionHelper {
                 ContextCompat.checkSelfPermission(activity, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
     }
 
+    fun hasStoragePermission(activity: Context) : Boolean{
+        return ContextCompat.checkSelfPermission(activity, WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+    }
+
     fun hasAllPermissions(activity: Context) : Boolean {
-        return hasCameraPermission(activity) && hasMicPermission(activity) && hasGpsPermission(activity)
+        return hasCameraPermission(activity) && hasMicPermission(activity) && hasGpsPermission(activity) && hasStoragePermission(activity)
     }
 
     /** Check to see we have the necessary permissions for this app, and ask for them if we don't.  */

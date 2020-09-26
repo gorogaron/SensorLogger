@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import com.android.sensorlogger.Utils.PermissionHelper
 import com.android.sensorlogger.camera.CameraSettings
+import com.android.sensorlogger.networking.UploadSettings
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,36 +25,28 @@ class MainActivity : AppCompatActivity() {
 
         if (isMeasurementRunning()) {
             animationView.visibility = View.VISIBLE
+            uploadButton.visibility = View.VISIBLE
             cameraSettingButton.visibility = View.GONE
             uploadSettingButton.visibility = View.GONE
             startStopButton.text = "STOP"
         } else {
             animationView.visibility = View.GONE
+            uploadButton.visibility = View.GONE
             cameraSettingButton.visibility = View.VISIBLE
             uploadSettingButton.visibility = View.VISIBLE
         }
 
+        requestPermissionsIfNeeded()
+
         startStopButton.setOnClickListener {if (!isMeasurementRunning()) startMeasurement() else stopMeasurement()}
-
-        val permissions = arrayListOf<String>()
-        if (!PermissionHelper.hasCameraPermission(this)) {
-            permissions.add(CAMERA)
-        }
-        if(!PermissionHelper.hasMicPermission(this)){
-            permissions.add(RECORD_AUDIO)
-        }
-        if(!PermissionHelper.hasGpsPermission(this)){
-            permissions.add(ACCESS_FINE_LOCATION)
-            permissions.add(ACCESS_COARSE_LOCATION)
-        }
-
-        if (permissions.isNotEmpty()){
-            PermissionHelper.requestPermission(this, permissions)
-        }
-
         cameraSettingButton.setOnClickListener {
             val cameraSettings = CameraSettings(this)
             cameraSettings.OpenCameraSettings()
+        }
+
+        uploadSettingButton.setOnClickListener {
+            val uploadSettings = UploadSettings(this)
+            uploadSettings.OpenUploadSettings()
         }
 
         statisticsHandler.postDelayed(statisticsUpdater, 1000)
@@ -62,6 +55,7 @@ class MainActivity : AppCompatActivity() {
     private fun startMeasurement(){
         startStopButton.text = "STOP"
         animationView.visibility = View.VISIBLE
+        uploadButton.visibility = View.VISIBLE
         cameraSettingButton.visibility = View.GONE
         uploadSettingButton.visibility = View.GONE
 
@@ -72,6 +66,7 @@ class MainActivity : AppCompatActivity() {
     private fun stopMeasurement(){
         startStopButton.text = "START"
         animationView.visibility = View.GONE
+        uploadButton.visibility = View.GONE
         cameraSettingButton.visibility = View.VISIBLE
         uploadSettingButton.visibility = View.VISIBLE
 
@@ -87,10 +82,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return false
-    }
-
-    override fun onPause() {
-        super.onPause()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -110,6 +101,27 @@ class MainActivity : AppCompatActivity() {
         last_upload.text = App.lastUpload
         network_traffic.text = "${App.networkTraffic} MByte"
         statisticsHandler.postDelayed(statisticsUpdater, 1000)
+    }
+
+    private fun requestPermissionsIfNeeded(){
+        val permissions = arrayListOf<String>()
+        if (!PermissionHelper.hasCameraPermission(this)) {
+            permissions.add(CAMERA)
+        }
+        if(!PermissionHelper.hasMicPermission(this)){
+            permissions.add(RECORD_AUDIO)
+        }
+        if(!PermissionHelper.hasGpsPermission(this)){
+            permissions.add(ACCESS_FINE_LOCATION)
+            permissions.add(ACCESS_COARSE_LOCATION)
+        }
+        if(!PermissionHelper.hasStoragePermission(this)){
+            permissions.add(WRITE_EXTERNAL_STORAGE)
+        }
+
+        if (permissions.isNotEmpty()){
+            PermissionHelper.requestPermission(this, permissions)
+        }
     }
 
     override fun onDestroy() {

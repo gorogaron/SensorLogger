@@ -15,11 +15,6 @@ import kotlinx.android.synthetic.main.camera_settings.view.*
 
 
 class CameraSettings(var context : Context) {
-    var selectedFps = 24
-    var selectedCameraid = "0"
-    var selectedWidth = 640
-    var selectedHeight = 480
-
     /**View items */
     val view = LayoutInflater.from(context).inflate(R.layout.camera_settings, null)
     val cameraIdSpinner = view.camera_id_spinner

@@ -18,6 +18,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.android.sensorlogger.App
 import com.android.sensorlogger.Utils.Config
+import com.android.sensorlogger.Utils.Util.isOnline
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -42,11 +43,11 @@ class Camera(context: Context) {
     private val appDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger")
     private val logDirectory = File("$appDirectory/logs")
     private var fileName = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ".mp4"
-    private var outputFile = File(logDirectory, fileName)
+    private var outputFile : File? = null
 
     private val uploadHandler = Handler()
     private var uploadTask = Runnable { uploadVideo(true) }
-    private var uploadPeriod : Long = 300 * 1000
+    private var uploadPeriod : Long = App.sessionManager.getUploadRate().toLong() * 1000
 
     /**New thread for camera operations*/
     private val cameraThread = HandlerThread("CameraThread").apply { start() }
@@ -56,11 +57,12 @@ class Camera(context: Context) {
     private val recorderSurface: Surface by lazy {
         val surface = MediaCodec.createPersistentInputSurface()
 
-        //TODO - do we need this dummy recorder?
+        outputFile = File(logDirectory, fileName)
         createRecorder(surface).apply {
             prepare()
             release()
         }
+        outputFile!!.delete()
         surface
     }
 
@@ -71,7 +73,7 @@ class Camera(context: Context) {
         }.build()
     }
 
-    private var recorder: MediaRecorder = createRecorder(recorderSurface)
+    private lateinit var recorder : MediaRecorder
     private var recording = false
 
     private val recordHandler = Handler()
@@ -84,7 +86,7 @@ class Camera(context: Context) {
             else {
                 try {
                     Log.d("CAMTAG", "Beginning camera initialization.")
-                    val cameraId = cameraManager.cameraIdList[0]
+                    val cameraId = App.sessionManager.getCamId()!!
                     camera = openCamera(cameraId)!!
                     session = createCaptureSession(camera, listOf(recorderSurface))
                     initSuccessful = true
@@ -106,11 +108,14 @@ class Camera(context: Context) {
                 //recorder.release()
                 //recorderSurface.release()
                 cameraDevice.close()
-                Log.d("CAMTAG", "Camera disconnected.")
+                Log.d("CAM", "Camera disconnected.")
             }
-            override fun onError(p0: CameraDevice, p1: Int) = cont.resume(null)
+            override fun onError(p0: CameraDevice, p1: Int){
+                Log.d("CAM", "Failed to open camera")
+                cont.resume(null)
+            }
             override fun onOpened(cameraDevice: CameraDevice){
-                Log.d("CAMTAG", "Camera opened.")
+                Log.d("CAM", "Camera opened.")
                 cont.resume(cameraDevice)
             }
         }, cameraHandler)
@@ -201,21 +206,24 @@ class Camera(context: Context) {
     }
 
     private fun uploadVideo(startNewSession: Boolean){
-        Log.d("CAM", "Started uploading video.")
+        if (isOnline()){
+            GlobalScope.launch(Dispatchers.IO){
+                val fileToUpload = outputFile
 
-        GlobalScope.launch(Dispatchers.IO){
-            val fileToUpload = outputFile
+                if (fileToUpload != null) {
+                    App.ApiService.uploadFile(fileToUpload, mContext)
 
-            App.ApiService.uploadFile(fileToUpload, mContext)
+                    //Delete old file
+                    fileToUpload.delete()
+                }
 
-            //Delete old file
-            fileToUpload.delete()
-
-            if (startNewSession){
-                stopRecording()
-                startRecording()
-                uploadHandler.postDelayed(uploadTask, uploadPeriod)
+                if (startNewSession){
+                    stopRecording()
+                    startRecording()
+                    uploadHandler.postDelayed(uploadTask, uploadPeriod)
+                }
             }
         }
+        Log.d("CAM", "Started uploading video.")
     }
 }
