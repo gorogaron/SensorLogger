@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import com.android.sensorlogger.App
 import com.android.sensorlogger.Utils.Util.isOnline
 import com.android.sensorlogger.networking.ApiService
@@ -37,8 +38,8 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     }
 
     private fun uploadFile(){
-        GlobalScope.launch(Dispatchers.IO){
-            if (isOnline()){
+        if (isOnline()){
+            GlobalScope.launch(Dispatchers.IO) {
                 val fileToUpload = logFile
 
                 //Create new logfile
@@ -48,9 +49,14 @@ open class Logger(open var context: Context, var fileNameTag : String) {
 
                 //Delete old file
                 fileToUpload.delete()
-                uploadHandler.postDelayed(uploadTask, uploadRate)
             }
         }
+        else {
+            Log.d("LOGGER", "No internet, postponed upload")
+            Toast.makeText(context, "No network connection, postponed uploading.", Toast.LENGTH_SHORT).show()
+        }
+        uploadHandler.postDelayed(uploadTask, uploadRate)
+
     }
 
     fun initLogFile(){
@@ -85,4 +91,10 @@ open class Logger(open var context: Context, var fileNameTag : String) {
         outputStreamWriter = null
     }
 
+    fun triggerManualUpload(){
+        if (logFile.exists()){
+            uploadHandler.removeCallbacks(uploadTask)
+            uploadFile()
+        }
+    }
 }

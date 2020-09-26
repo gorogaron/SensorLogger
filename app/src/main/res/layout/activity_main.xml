@@ -61,7 +61,7 @@
         android:textColor="#FFFFFF"
         android:textAllCaps="false"
         android:background="@drawable/btn_bkg"
-        android:text="CAMERA SETTINGS"
+        android:text="UPLOAD NOW"
         android:layout_marginTop="20dp"
         />
 

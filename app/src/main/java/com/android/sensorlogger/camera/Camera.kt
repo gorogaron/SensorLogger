@@ -226,4 +226,18 @@ class Camera(context: Context) {
         }
         Log.d("CAM", "Started uploading video.")
     }
+
+    fun triggerManualUpload(){
+        if (outputFile!!.exists()){
+            if (recording){
+                uploadHandler.removeCallbacks(uploadTask)
+                uploadVideo(true)
+            }
+            else{
+                //Note: We shouldn't get here. This branch means that video is present on device,
+                //but camera is not recording anymore.
+                uploadVideo(false)
+            }
+        }
+    }
 }
