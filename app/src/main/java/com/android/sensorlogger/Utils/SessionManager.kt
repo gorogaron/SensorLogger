@@ -4,13 +4,34 @@ import android.content.Context
 
 class SessionManager(context: Context) {
 
+    /**Camera settings*/
     val KEY_WIDTH = "width"
     val KEY_HEIGHT = "height"
     val KEY_FPS = "fps"
     val KEY_CAM_ID = "camId"
 
+    /**Network settings*/
+    val KEY_API_URL = "url"
+    val KEY_UPLOADRATE = "uploadRate"
+
     val sharedPreferences = context.getSharedPreferences("SETTINGS", Context.MODE_PRIVATE)
     val editor = sharedPreferences.edit()
+
+    fun setUploadRate(rate : Int){
+        editor.putInt(KEY_UPLOADRATE, rate)
+    }
+
+    fun getUploadRate() : Int{
+        return sharedPreferences.getInt(KEY_UPLOADRATE, 30)
+    }
+
+    fun setUrl(url: String){
+        editor.putString(KEY_API_URL, url).apply()
+    }
+
+    fun getUrl() : String?{
+        return sharedPreferences.getString(KEY_API_URL, "https://palacz.my.to/")
+    }
 
     fun setWidth(width : Int){
         editor.putInt(KEY_WIDTH, width).apply()
