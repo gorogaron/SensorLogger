@@ -7,6 +7,7 @@ import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
+import android.media.CameraProfile
 import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.os.Handler
@@ -91,6 +92,7 @@ class Camera(context: Context) {
                     session = createCaptureSession(camera, listOf(recorderSurface))
                     initSuccessful = true
                     Log.d("CAMTAG", "Session created.")
+
                 } catch (e: Exception) {
                     Log.d("CAMTAG", "Error during camera initialization: $e")
                 }
@@ -104,8 +106,8 @@ class Camera(context: Context) {
         }
         cameraManager.openCamera(cameraId, object: CameraDevice.StateCallback() {
             override fun onDisconnected(cameraDevice: CameraDevice){
-                //cameraThread.quitSafely()
-                //recorder.release()
+                cameraThread.quitSafely()
+                recorder.release()
                 //recorderSurface.release()
                 cameraDevice.close()
                 Log.d("CAM", "Camera disconnected.")
@@ -154,7 +156,6 @@ class Camera(context: Context) {
             Log.d("CAM", "User is in movement, started recording.")
         }
         if (!App.inMovement && recording){
-            stopRecording()
             Log.d("CAM", "User has not moved for 30 seconds, stopped recording.")
             uploadHandler.removeCallbacks(uploadTask)
             uploadVideo(false)
@@ -200,15 +201,20 @@ class Camera(context: Context) {
         recordHandler.removeCallbacks(movementChecker)
         uploadHandler.removeCallbacks(uploadTask)
         if (recording){
-            stopRecording()
             uploadVideo(false)
         }
     }
 
     private fun uploadVideo(startNewSession: Boolean){
         if (isOnline()){
+            Log.d("CAM", "Started uploading video.")
             GlobalScope.launch(Dispatchers.IO){
                 val fileToUpload = outputFile
+                stopRecording()
+
+                if (startNewSession){
+                    startRecording()
+                }
 
                 if (fileToUpload != null) {
                     App.ApiService.uploadFile(fileToUpload, mContext)
@@ -216,15 +222,10 @@ class Camera(context: Context) {
                     //Delete old file
                     fileToUpload.delete()
                 }
-
-                if (startNewSession){
-                    stopRecording()
-                    startRecording()
-                    uploadHandler.postDelayed(uploadTask, uploadPeriod)
-                }
             }
         }
-        Log.d("CAM", "Started uploading video.")
+        if (startNewSession) uploadHandler.postDelayed(uploadTask, uploadPeriod)
+
     }
 
     fun triggerManualUpload(){

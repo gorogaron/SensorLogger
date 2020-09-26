@@ -50,9 +50,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         uploadButton.setOnClickListener {
-            var serviceIntent = Intent(this, SensorService::class.java)
-            serviceIntent.putExtra("UPLOAD_REQUEST", 1)
-            startService(serviceIntent)
+            try {
+                var serviceIntent = Intent(this, SensorService::class.java)
+                serviceIntent.putExtra("UPLOAD_REQUEST", 1)
+                startService(serviceIntent)
+            } catch (e: Exception) {
+                val a = 2
+            }
         }
 
         statisticsHandler.postDelayed(statisticsUpdater, 1000)

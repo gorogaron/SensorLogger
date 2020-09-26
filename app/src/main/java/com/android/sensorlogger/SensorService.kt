@@ -59,8 +59,8 @@ class SensorService : Service(){
                 .setSmallIcon(R.drawable.icon)
                 .setContentIntent(pendingIntent)
                 .build()
-
             startForeground(1, notification)
+
             //wifi.run()
             accelerometer.run()
             //gyroscope.run()

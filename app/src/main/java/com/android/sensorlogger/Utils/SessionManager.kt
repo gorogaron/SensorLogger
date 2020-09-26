@@ -18,7 +18,7 @@ class SessionManager(context: Context) {
     val editor = sharedPreferences.edit()
 
     fun setUploadRate(rate : Int){
-        editor.putInt(KEY_UPLOADRATE, rate)
+        editor.putInt(KEY_UPLOADRATE, rate).apply()
     }
 
     fun getUploadRate() : Int{
