@@ -33,6 +33,8 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     }
 
     fun stopPeriodicUpload(){
+        //Remove previous file
+        logFile.delete()
         //Remove previous callback
         uploadHandler.removeCallbacks(uploadTask)
     }
