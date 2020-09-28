@@ -40,17 +40,14 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     }
 
     private fun uploadFile(){
-        if (isOnline()){
+        if (isOnline() && logFile.length() > 0){
             GlobalScope.launch(Dispatchers.IO) {
                 val fileToUpload = logFile
 
                 //Create new logfile
                 initLogFile()
 
-                if (fileToUpload.length() > 0){
-                    //Only upload if has content
-                    App.ApiService.uploadFile(fileToUpload, context)
-                }
+                App.ApiService.uploadFile(fileToUpload, context)
 
                 //Delete old file
                 fileToUpload.delete()
