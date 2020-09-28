@@ -52,23 +52,31 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
     private fun scanSuccess() {
         val results = wifiManager.scanResults
         GlobalScope.launch(Dispatchers.IO) {
-
+            Log.d("WIFI", "Wifi scan success.")
             results.forEach {
                 if (!availableNetworks.contains(it)){
                     //New network found
                     availableNetworks.add(it)
                     val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ";${it.SSID};${it.BSSID};;\n"
+                    Log.d("WIFI", "Writing new data to wifi logfile (found).")
                     writeToFile(line)
                 }
             }
 
+            val elementToRemove = arrayListOf<ScanResult>()
             availableNetworks.forEach {
                 if (!results.contains(it)){
                     //Lost a network
-                    availableNetworks.remove(it)
+                    elementToRemove.add(it)
                     val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ";;;${it.SSID};${it.BSSID}\n"
+                    Log.d("WIFI", "Writing new data to wifi logfile (lost).")
                     writeToFile(line)
                 }
+            }
+
+            //Remove elements that were lost
+            elementToRemove.forEach {
+                availableNetworks.remove(it)
             }
             closeFile()
         }
