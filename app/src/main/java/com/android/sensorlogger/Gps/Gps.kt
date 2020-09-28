@@ -41,7 +41,6 @@ class Gps(context: Context) : LocationListener, Logger(context, "GPS")
     override fun onLocationChanged(loc: Location) {
         //Low rate, so can be done in every iteration
         if (App.inMovement){
-            Toast.makeText(context, "GPS FOUND", Toast.LENGTH_LONG).show()
             GlobalScope.launch(Dispatchers.IO) {
                 val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) + ":" +
                         loc.latitude.toString() + ";"

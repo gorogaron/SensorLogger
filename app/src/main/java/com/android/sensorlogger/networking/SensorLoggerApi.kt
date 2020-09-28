@@ -17,8 +17,9 @@ interface SensorLoggerApi {
 
     @Multipart
     @Headers("X-API-Key: dc5daf82-f7a0-11ea-adc1-0242ac120002")
-    @POST("parcel/1")
+    @POST
     fun uploadFile(
+        @Url endpointUrl : String,
         @Part files : MultipartBody.Part
     ) : Call<ResponseObject>
 

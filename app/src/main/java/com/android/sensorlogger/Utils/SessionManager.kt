@@ -13,6 +13,7 @@ class SessionManager(context: Context) {
     /**Network settings*/
     val KEY_API_URL = "url"
     val KEY_UPLOADRATE = "uploadRate"
+    val KEY_ENDPOINT = "endpoint"
 
     val sharedPreferences = context.getSharedPreferences("SETTINGS", Context.MODE_PRIVATE)
     val editor = sharedPreferences.edit()
@@ -31,6 +32,14 @@ class SessionManager(context: Context) {
 
     fun getUrl() : String?{
         return sharedPreferences.getString(KEY_API_URL, "https://palacz.my.to/")
+    }
+
+    fun setEndpoint(endpoint: String){
+        editor.putString(KEY_ENDPOINT, endpoint).apply()
+    }
+
+    fun getEndpoint() : String?{
+        return sharedPreferences.getString(KEY_ENDPOINT, "parcel/1")
     }
 
     fun setWidth(width : Int){

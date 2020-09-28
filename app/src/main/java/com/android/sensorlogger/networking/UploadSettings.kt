@@ -18,6 +18,7 @@ class UploadSettings(var context : Context) {
     val view = LayoutInflater.from(context).inflate(R.layout.upload_settings, null)
     val api_url_edittext = view.api_url_edittext
     val upload_rate_edittext = view.upload_rate_edittext
+    val api_endpoint_edittext = view.api_endpoint_edittext
 
     fun OpenUploadSettings(){
         val builder = AlertDialog.Builder(context)
@@ -38,10 +39,12 @@ class UploadSettings(var context : Context) {
     private fun saveConfiguration(){
         App.sessionManager.setUrl(api_url_edittext.text.toString())
         App.sessionManager.setUploadRate(upload_rate_edittext.text.toString().toInt())
+        App.sessionManager.setEndpoint(api_endpoint_edittext.text.toString())
     }
 
     private fun loadConfiguration(){
         api_url_edittext.setText(App.sessionManager.getUrl())
         upload_rate_edittext.setText(App.sessionManager.getUploadRate().toString())
+        api_endpoint_edittext.setText(App.sessionManager.getEndpoint())
     }
 }

@@ -35,19 +35,19 @@ class SensorService : Service(){
         accelerometer = Accelerometer(this, "ACC")
         //gyroscope = Gyroscope(this, "GYRO")
         //magnetometer = Magnetometer(this, "MAG")
-        //gps = Gps(this)
+        gps = Gps(this)
         //camera = Camera(this)
-        wifi = Wifi(this)
+        //wifi = Wifi(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent!!.extras != null){
-            wifi.triggerManualUpload()
+            //wifi.triggerManualUpload()
             accelerometer.triggerManualUpload()
             //gyroscope.triggerManualUpload()
             //magnetometer.triggerManualUpload()
             //camera.triggerManualUpload()
-            //gps.triggerManualUpload()
+            gps.triggerManualUpload()
         }
         else {
             val notificationIntent = Intent(this, MainActivity::class.java)
@@ -61,23 +61,23 @@ class SensorService : Service(){
                 .build()
             startForeground(1, notification)
 
-            wifi.run()
+            //wifi.run()
             accelerometer.run()
             //gyroscope.run()
             //magnetometer.run()
             //camera.start()
-            //gps.run()
+            gps.run()
         }
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
 
     override fun onDestroy() {
-        wifi.stop()
+        //wifi.stop()
         accelerometer.stop()
         //gyroscope.stop()
         //magnetometer.stop()
-        //gps.stop()
+        gps.stop()
         //camera.stop()
         super.onDestroy()
     }

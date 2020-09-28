@@ -21,7 +21,7 @@ class ApiService {
 
         val filePart = file.asRequestBody(context.contentResolver.getType(fileUri)!!.toMediaTypeOrNull())
         val filePartRequest = MultipartBody.Part.createFormData("files", file.name, filePart)
-        var response = api.uploadFile(filePartRequest).awaitResponse()
+        var response = api.uploadFile(App.sessionManager.getEndpoint()!!,filePartRequest).awaitResponse()
         if (response.isSuccessful){
             Log.d("API", "Uploading successful: ${file.name}")
 
