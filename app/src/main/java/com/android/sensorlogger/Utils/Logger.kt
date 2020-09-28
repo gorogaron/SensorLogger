@@ -47,7 +47,10 @@ open class Logger(open var context: Context, var fileNameTag : String) {
                 //Create new logfile
                 initLogFile()
 
-                App.ApiService.uploadFile(fileToUpload, context)
+                if (fileToUpload.length() > 0){
+                    //Only upload if has content
+                    App.ApiService.uploadFile(fileToUpload, context)
+                }
 
                 //Delete old file
                 fileToUpload.delete()

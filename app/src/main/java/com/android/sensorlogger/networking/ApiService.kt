@@ -27,7 +27,7 @@ class ApiService {
 
             var date = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date())
             App.lastUpload = "${file.name} ($date)"
-            App.networkTraffic = App.networkTraffic + (file.length().toDouble()/(1024*1024)).round(2)
+            App.networkTraffic = (App.networkTraffic + getFileSize(file)).round(2)
 
         }
         else {
@@ -41,4 +41,8 @@ private fun Double.round(i: Int): Double {
     var multiplier = 1.0
     repeat(i) { multiplier *= 10 }
     return kotlin.math.round(this * multiplier) / multiplier
+}
+
+private fun getFileSize(file: File) : Double{
+    return (file.length().toDouble()/(1024*1024)).round(2)
 }
