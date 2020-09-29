@@ -16,6 +16,10 @@ object Config {
         var MAG_X_THRESHOLD = 0.1
         var MAG_Y_THRESHOLD = 0.1
         var MAG_Z_THRESHOLD = 0.1
+
+        var ACC_DX_THRESHOLD = 0.1
+        var ACC_DY_THRESHOLD = 0.1
+        var ACC_DZ_THRESHOLD = 0.1
     }
 
     object Camera {
