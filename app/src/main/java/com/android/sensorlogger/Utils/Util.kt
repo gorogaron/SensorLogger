@@ -1,15 +1,22 @@
 package com.android.sensorlogger.Utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.net.InetAddress
+import java.net.UnknownHostException
+
 object Util {
 
-    fun isOnline(): Boolean {
+    suspend fun isOnline(): Boolean {
         try {
-            val p1 =
-                Runtime.getRuntime().exec("ping -c 1 www.google.com")
-            val returnVal = p1.waitFor()
-            return returnVal == 0
-        } catch (e: Exception) {
-            e.printStackTrace()
+            lateinit var addresses: Array<out InetAddress>
+            GlobalScope.launch(Dispatchers.IO){
+                addresses = InetAddress.getAllByName("www.google.com")
+            }.join()
+            return !addresses[0].hostAddress.equals("")
+        } catch (e: UnknownHostException) {
+            // Log error
         }
         return false
     }

@@ -40,22 +40,24 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     }
 
     private fun uploadFile(){
-        if (isOnline() && logFile.length() > 0){
+        if (logFile.length() > 0){
             GlobalScope.launch(Dispatchers.IO) {
-                val fileToUpload = logFile
+                if (isOnline()) {
+                    val fileToUpload = logFile
 
-                //Create new logfile
-                initLogFile()
+                    //Create new logfile
+                    initLogFile()
 
-                App.ApiService.uploadFile(fileToUpload, context)
+                    App.ApiService.uploadFile(fileToUpload, context)
 
-                //Delete old file
-                fileToUpload.delete()
+                    //Delete old file
+                    fileToUpload.delete()
+                }
+                else {
+                    Log.d("LOGGER", "No internet, postponed upload")
+                    Toast.makeText(context, "No network connection, postponed uploading.", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
-        else {
-            Log.d("LOGGER", "No internet, postponed upload")
-            Toast.makeText(context, "No network connection, postponed uploading.", Toast.LENGTH_SHORT).show()
         }
         uploadHandler.postDelayed(uploadTask, uploadRate)
 

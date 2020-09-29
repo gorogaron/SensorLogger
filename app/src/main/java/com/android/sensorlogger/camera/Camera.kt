@@ -206,9 +206,9 @@ class Camera(context: Context) {
     }
 
     private fun uploadVideo(startNewSession: Boolean){
-        if (isOnline()){
-            Log.d("CAM", "Started uploading video.")
-            GlobalScope.launch(Dispatchers.IO){
+        Log.d("CAM", "Started uploading video.")
+        GlobalScope.launch(Dispatchers.IO){
+            if (isOnline()){
                 val fileToUpload = outputFile
                 stopRecording()
 
