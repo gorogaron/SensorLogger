@@ -25,7 +25,14 @@ class Accelerometer(context: Context, fileName: String) : SensorEventListener, S
     var prev_z : Float? = null
 
     init {
-        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+
+        if (sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) == null){
+            sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        }
+        else{
+            sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+        }
+
         sampleRateMillis = 500
 
         x_threshold = Config.Sensor.ACC_X_THRESHOLD
