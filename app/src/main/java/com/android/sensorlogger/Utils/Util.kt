@@ -1,5 +1,8 @@
 package com.android.sensorlogger.Utils
 
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -21,5 +24,8 @@ object Util {
         return false
     }
 
-
+    fun isSensorAvailable(sensor : Int, context: Context) : Boolean{
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        return sensorManager.getDefaultSensor(sensor) != null
+    }
 }

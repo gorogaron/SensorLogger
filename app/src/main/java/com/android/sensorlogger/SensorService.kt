@@ -3,6 +3,7 @@ package com.android.sensorlogger
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.hardware.Sensor
 import android.os.Handler
 import android.os.IBinder
 import android.os.Message
@@ -10,6 +11,7 @@ import android.os.Messenger
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.agrolytics.agrolytics_android.utils.Gps
+import com.android.sensorlogger.Utils.Util
 import com.android.sensorlogger.camera.Camera
 import com.android.sensorlogger.sensors.Accelerometer
 import com.android.sensorlogger.sensors.Gyroscope
@@ -32,21 +34,36 @@ class SensorService : Service(){
         //onCreate will be called only once.
         super.onCreate()
 
-        accelerometer = Accelerometer(this, "ACC")
-        //gyroscope = Gyroscope(this, "GYRO")
-        //magnetometer = Magnetometer(this, "MAG")
+        if (Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION,this) || Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION,this)){
+            accelerometer = Accelerometer(this, "ACC")
+        }
+        if (Util.isSensorAvailable(Sensor.TYPE_GYROSCOPE,this)){
+            gyroscope = Gyroscope(this, "GYRO")
+        }
+        if (Util.isSensorAvailable(Sensor.TYPE_MAGNETIC_FIELD,this)){
+            magnetometer = Magnetometer(this, "MAG")
+        }
+
         gps = Gps(this)
-        //camera = Camera(this)
-        //wifi = Wifi(this)
+        camera = Camera(this)
+        wifi = Wifi(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent!!.extras != null){
-            //wifi.triggerManualUpload()
-            accelerometer.triggerManualUpload()
-            //gyroscope.triggerManualUpload()
-            //magnetometer.triggerManualUpload()
-            //camera.triggerManualUpload()
+            wifi.triggerManualUpload()
+
+            if (Util.isSensorAvailable(Sensor.TYPE_ACCELEROMETER, this) || Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION, this)) {
+                accelerometer.triggerManualUpload()
+            }
+            if (Util.isSensorAvailable(Sensor.TYPE_GYROSCOPE,this)) {
+                gyroscope.triggerManualUpload()
+            }
+            if (Util.isSensorAvailable(Sensor.TYPE_MAGNETIC_FIELD,this)) {
+                magnetometer.triggerManualUpload()
+            }
+
+            camera.triggerManualUpload()
             gps.triggerManualUpload()
         }
         else {
@@ -61,11 +78,19 @@ class SensorService : Service(){
                 .build()
             startForeground(1, notification)
 
-            //wifi.run()
-            accelerometer.run()
-            //gyroscope.run()
-            //magnetometer.run()
-            //camera.start()
+            wifi.run()
+
+            if (Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION,this) ||Util.isSensorAvailable(Sensor.TYPE_ACCELEROMETER,this)) {
+                accelerometer.run()
+            }
+            if (Util.isSensorAvailable(Sensor.TYPE_GYROSCOPE,this)) {
+                gyroscope.run()
+            }
+            if (Util.isSensorAvailable(Sensor.TYPE_MAGNETIC_FIELD,this)) {
+                magnetometer.run()
+            }
+
+            camera.start()
             gps.run()
         }
         //When system kills the service, restart it automatically with intent = null
@@ -73,12 +98,20 @@ class SensorService : Service(){
     }
 
     override fun onDestroy() {
-        //wifi.stop()
-        accelerometer.stop()
-        //gyroscope.stop()
-        //magnetometer.stop()
+        wifi.stop()
+
+        if (Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION,this) ||Util.isSensorAvailable(Sensor.TYPE_ACCELEROMETER,this)) {
+            accelerometer.stop()
+        }
+        if (Util.isSensorAvailable(Sensor.TYPE_GYROSCOPE,this)) {
+            gyroscope.stop()
+        }
+        if (Util.isSensorAvailable(Sensor.TYPE_MAGNETIC_FIELD,this)) {
+            magnetometer.stop()
+        }
+
         gps.stop()
-        //camera.stop()
+        camera.stop()
         super.onDestroy()
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.Handler
 import android.util.Log
 import com.android.sensorlogger.App
@@ -30,7 +31,7 @@ class Accelerometer(context: Context, fileName: String) : SensorEventListener, S
             sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         }
         else{
-            sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
+            sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
         }
 
         sampleRateMillis = 500

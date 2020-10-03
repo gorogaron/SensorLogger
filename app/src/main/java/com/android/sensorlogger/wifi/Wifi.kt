@@ -23,6 +23,7 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
     private var scanHandler = Handler()
     private var scanRunnable = Runnable { scan() }
     private var availableNetworks = mutableListOf<ScanResult>()
+    private var loggingWifi = false
 
     private val wifiScanReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -85,8 +86,10 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
     fun run(){
         if (!wifiManager.isWifiEnabled){
             Toast.makeText(context, "Wifi is turned off, SSIDs will not be logged.", Toast.LENGTH_LONG).show()
+            loggingWifi = false
         }
         else{
+            loggingWifi = true
             initLogFile()
             startPeriodicUpload()
             val intentFilter = IntentFilter()
@@ -98,7 +101,9 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
 
     fun stop(){
         scanHandler.removeCallbacks(scanRunnable)
-        stopPeriodicUpload()
+        if (loggingWifi) {
+            stopPeriodicUpload()
+        }
     }
 
 }
