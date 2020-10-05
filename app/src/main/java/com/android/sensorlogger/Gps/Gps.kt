@@ -29,13 +29,11 @@ class Gps(context: Context) : LocationListener, Logger(context, "GPS")
         if (PermissionHelper.hasGpsPermission(context)) {
             locationManager.requestLocationUpdates("fused", 5000, 0f, this)
             initLogFile()
-            startPeriodicUpload()
         }
     }
 
     fun stop(){
         locationManager.removeUpdates(this)
-        stopPeriodicUpload()
     }
 
     override fun onLocationChanged(loc: Location) {

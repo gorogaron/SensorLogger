@@ -78,7 +78,6 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
                     }
                 }
                 closeFile()
-                stopPeriodicUpload()
             }
         } catch (e: IOException) {
             Log.e("Exception", "File write failed: $e")
@@ -88,7 +87,6 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
     fun run(){
         //FakeListener is needed to keep virtual sensors awake. This is a workaround to
         //maintain the desired sampling rate.
-        startPeriodicUpload()
         sensorManager.registerListener(fakeListener, sensor, SensorManager.SENSOR_DELAY_NORMAL)
         periodicRegisterer.run()
         fileWriter.run()

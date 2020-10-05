@@ -91,7 +91,6 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
         else{
             loggingWifi = true
             initLogFile()
-            startPeriodicUpload()
             val intentFilter = IntentFilter()
             intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
             context.registerReceiver(wifiScanReceiver, intentFilter)
@@ -101,9 +100,6 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
 
     fun stop(){
         scanHandler.removeCallbacks(scanRunnable)
-        if (loggingWifi) {
-            stopPeriodicUpload()
-        }
         context.unregisterReceiver(wifiScanReceiver)
     }
 

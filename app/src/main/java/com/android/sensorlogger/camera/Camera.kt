@@ -107,7 +107,7 @@ class Camera(context: Context) {
             override fun onDisconnected(cameraDevice: CameraDevice){
                 cameraThread.quitSafely()
                 recorder.release()
-                //recorderSurface.release()
+                recorderSurface.release()
                 cameraDevice.close()
                 Log.d("CAM", "Camera disconnected.")
             }
@@ -201,7 +201,7 @@ class Camera(context: Context) {
         if (recording){
             uploadVideo(false)
         }
-    }
+     }
 
     private fun uploadVideo(startNewSession: Boolean){
         Log.d("CAM", "Started uploading video.")

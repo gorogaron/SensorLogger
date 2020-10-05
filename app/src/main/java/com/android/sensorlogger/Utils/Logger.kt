@@ -21,44 +21,7 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     private lateinit var logFile : File
     private var outputStreamWriter: OutputStreamWriter? = null
 
-    private val uploadRate : Long = App.sessionManager.getUploadRate().toLong() * 1000
-    private val uploadHandler = Handler()
-    private var uploadTask = Runnable { uploadFile() }
 
-    fun startPeriodicUpload(){
-        uploadHandler.postDelayed(uploadTask, uploadRate)
-    }
-
-    fun stopPeriodicUpload(){
-        //Remove previous file
-        logFile.delete()
-        //Remove previous callback
-        uploadHandler.removeCallbacks(uploadTask)
-    }
-
-    private fun uploadFile(){
-        if (logFile.length() > 0){
-            GlobalScope.launch(Dispatchers.IO) {
-                if (isOnline()) {
-                    val fileToUpload = logFile
-
-                    //Create new logfile
-                    initLogFile()
-
-                    App.apiService.uploadFile(fileToUpload, context)
-
-                    //Delete old file
-                    fileToUpload.delete()
-                }
-                else {
-                    Log.d("LOGGER", "No internet, postponed upload")
-                    Toast.makeText(context, "No network connection, postponed uploading.", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-        uploadHandler.postDelayed(uploadTask, uploadRate)
-
-    }
 
     fun initLogFile(){
         if (!appDirectory.exists()) {
@@ -74,11 +37,6 @@ open class Logger(open var context: Context, var fileNameTag : String) {
         outputStreamWriter = OutputStreamWriter(FileOutputStream(logFile, true))
     }
 
-    fun deleteFile(){
-        closeFile()
-        logFile.delete()
-        outputStreamWriter = null
-    }
 
     fun writeToFile(line : String){
         if (outputStreamWriter == null){
@@ -90,12 +48,5 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     fun closeFile(){
         outputStreamWriter?.close()
         outputStreamWriter = null
-    }
-
-    fun triggerManualUpload(){
-        if (logFile.exists()){
-            uploadHandler.removeCallbacks(uploadTask)
-            uploadFile()
-        }
     }
 }

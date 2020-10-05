@@ -14,6 +14,7 @@ import androidx.core.app.NotificationCompat
 import com.agrolytics.agrolytics_android.utils.Gps
 import com.android.sensorlogger.Utils.Util
 import com.android.sensorlogger.camera.Camera
+import com.android.sensorlogger.networking.UploadWatcher
 import com.android.sensorlogger.sensors.Accelerometer
 import com.android.sensorlogger.sensors.Gyroscope
 import com.android.sensorlogger.sensors.Magnetometer
@@ -28,6 +29,7 @@ class SensorService : Service(){
     private var camera : Camera? = null
     private var gps : Gps? = null
     private var wifi : Wifi? = null
+    private var uploadWatcher : UploadWatcher? = null
 
     override fun onCreate() {
         //Will be called only the first time the service is created. We can stop and start it,
@@ -46,16 +48,12 @@ class SensorService : Service(){
         gps = tryOrNull { Gps(this) }
         camera = tryOrNull { Camera(this) }
         wifi = tryOrNull { Wifi(this) }
+        uploadWatcher = UploadWatcher(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent!!.extras != null){
-            wifi?.triggerManualUpload()
-            accelerometer?.triggerManualUpload()
-            gyroscope?.triggerManualUpload()
-            magnetometer?.triggerManualUpload()
-            camera?.triggerManualUpload()
-            gps?.triggerManualUpload()
+        if (intent?.extras != null){
+            uploadWatcher?.triggerManualUpload()
         }
         else {
             val notificationIntent = Intent(this, MainActivity::class.java)
@@ -75,6 +73,7 @@ class SensorService : Service(){
             magnetometer?.run()
             camera?.start()
             gps?.run()
+            uploadWatcher?.run()
         }
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
@@ -87,6 +86,7 @@ class SensorService : Service(){
         magnetometer?.stop()
         gps?.stop()
         camera?.stop()
+        uploadWatcher?.stop()
         super.onDestroy()
     }
 

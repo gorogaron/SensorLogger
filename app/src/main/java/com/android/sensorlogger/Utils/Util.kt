@@ -23,9 +23,4 @@ object Util {
         }
         return false
     }
-
-    fun isSensorAvailable(sensor : Int, context: Context) : Boolean{
-        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        return sensorManager.getDefaultSensor(sensor) != null
-    }
 }
