@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.agrolytics.agrolytics_android.utils.Gps
@@ -17,54 +18,44 @@ import com.android.sensorlogger.sensors.Accelerometer
 import com.android.sensorlogger.sensors.Gyroscope
 import com.android.sensorlogger.sensors.Magnetometer
 import com.android.sensorlogger.wifi.Wifi
+import java.lang.RuntimeException
 
 
 class SensorService : Service(){
-
-
-    lateinit var accelerometer : Accelerometer
-    lateinit var gyroscope : Gyroscope
-    lateinit var magnetometer: Magnetometer
-    lateinit var camera : Camera
-    lateinit var gps : Gps
-    lateinit var wifi : Wifi
+    private var accelerometer : Accelerometer? = null
+    private var gyroscope : Gyroscope? = null
+    private var magnetometer: Magnetometer? = null
+    private var camera : Camera? = null
+    private var gps : Gps? = null
+    private var wifi : Wifi? = null
 
     override fun onCreate() {
         //Will be called only the first time the service is created. We can stop and start it,
         //onCreate will be called only once.
         super.onCreate()
-
-        if (Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION,this) || Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION,this)){
-            accelerometer = Accelerometer(this, "ACC")
-        }
-        if (Util.isSensorAvailable(Sensor.TYPE_GYROSCOPE,this)){
-            gyroscope = Gyroscope(this, "GYRO")
-        }
-        if (Util.isSensorAvailable(Sensor.TYPE_MAGNETIC_FIELD,this)){
-            magnetometer = Magnetometer(this, "MAG")
-        }
-
-        gps = Gps(this)
-        camera = Camera(this)
-        wifi = Wifi(this)
+        fun <T> tryOrNull(f: () -> T) =
+            try {
+                f()
+            } catch (e: Exception) {
+                Log.e("SEN", "Could not initialize: ${e.localizedMessage}")
+                null
+            }
+        accelerometer = tryOrNull { Accelerometer(this, "ACC") }
+        gyroscope = tryOrNull { Gyroscope(this, "GYRO") }
+        magnetometer = tryOrNull { Magnetometer(this, "MAG") }
+        gps = tryOrNull { Gps(this) }
+        camera = tryOrNull { Camera(this) }
+        wifi = tryOrNull { Wifi(this) }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent!!.extras != null){
-            wifi.triggerManualUpload()
-
-            if (Util.isSensorAvailable(Sensor.TYPE_ACCELEROMETER, this) || Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION, this)) {
-                accelerometer.triggerManualUpload()
-            }
-            if (Util.isSensorAvailable(Sensor.TYPE_GYROSCOPE,this)) {
-                gyroscope.triggerManualUpload()
-            }
-            if (Util.isSensorAvailable(Sensor.TYPE_MAGNETIC_FIELD,this)) {
-                magnetometer.triggerManualUpload()
-            }
-
-            camera.triggerManualUpload()
-            gps.triggerManualUpload()
+            wifi?.triggerManualUpload()
+            accelerometer?.triggerManualUpload()
+            gyroscope?.triggerManualUpload()
+            magnetometer?.triggerManualUpload()
+            camera?.triggerManualUpload()
+            gps?.triggerManualUpload()
         }
         else {
             val notificationIntent = Intent(this, MainActivity::class.java)
@@ -78,40 +69,24 @@ class SensorService : Service(){
                 .build()
             startForeground(1, notification)
 
-            wifi.run()
-
-            if (Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION,this) ||Util.isSensorAvailable(Sensor.TYPE_ACCELEROMETER,this)) {
-                accelerometer.run()
-            }
-            if (Util.isSensorAvailable(Sensor.TYPE_GYROSCOPE,this)) {
-                gyroscope.run()
-            }
-            if (Util.isSensorAvailable(Sensor.TYPE_MAGNETIC_FIELD,this)) {
-                magnetometer.run()
-            }
-
-            camera.start()
-            gps.run()
+            wifi?.run()
+            accelerometer?.run()
+            gyroscope?.run()
+            magnetometer?.run()
+            camera?.start()
+            gps?.run()
         }
         //When system kills the service, restart it automatically with intent = null
         return START_STICKY
     }
 
     override fun onDestroy() {
-        wifi.stop()
-
-        if (Util.isSensorAvailable(Sensor.TYPE_LINEAR_ACCELERATION,this) ||Util.isSensorAvailable(Sensor.TYPE_ACCELEROMETER,this)) {
-            accelerometer.stop()
-        }
-        if (Util.isSensorAvailable(Sensor.TYPE_GYROSCOPE,this)) {
-            gyroscope.stop()
-        }
-        if (Util.isSensorAvailable(Sensor.TYPE_MAGNETIC_FIELD,this)) {
-            magnetometer.stop()
-        }
-
-        gps.stop()
-        camera.stop()
+        wifi?.stop()
+        accelerometer?.stop()
+        gyroscope?.stop()
+        magnetometer?.stop()
+        gps?.stop()
+        camera?.stop()
         super.onDestroy()
     }
 
