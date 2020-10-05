@@ -104,6 +104,7 @@ class Wifi(context : Context) : Logger(context, "WIFI") {
         if (loggingWifi) {
             stopPeriodicUpload()
         }
+        context.unregisterReceiver(wifiScanReceiver)
     }
 
 }
