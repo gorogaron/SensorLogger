@@ -7,7 +7,6 @@ import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
-import android.media.CameraProfile
 import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.os.Handler
@@ -216,7 +215,7 @@ class Camera(context: Context) {
                 }
 
                 if (fileToUpload != null) {
-                    App.ApiService.uploadFile(fileToUpload, mContext)
+                    App.apiService.uploadFile(fileToUpload, mContext)
 
                     //Delete old file
                     fileToUpload.delete()

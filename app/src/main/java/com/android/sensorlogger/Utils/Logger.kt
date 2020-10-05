@@ -2,16 +2,13 @@ package com.android.sensorlogger.Utils
 
 import android.content.Context
 import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import com.android.sensorlogger.App
 import com.android.sensorlogger.Utils.Util.isOnline
-import com.android.sensorlogger.networking.ApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
@@ -48,7 +45,7 @@ open class Logger(open var context: Context, var fileNameTag : String) {
                     //Create new logfile
                     initLogFile()
 
-                    App.ApiService.uploadFile(fileToUpload, context)
+                    App.apiService.uploadFile(fileToUpload, context)
 
                     //Delete old file
                     fileToUpload.delete()
