@@ -4,18 +4,12 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.os.Environment
 import android.os.Handler
 import android.util.Log
 import com.android.sensorlogger.Utils.Logger
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
-import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStreamWriter
-import java.lang.Math.abs
 import java.lang.Runnable
 import java.text.SimpleDateFormat
 import java.util.*
@@ -39,9 +33,9 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
     private val measurementChannel = Channel<SensorEvent>(100)
 
     //Threshold levels
-    var x_threshold : Double = 0.0
-    var y_threshold : Double  = 0.0
-    var z_threshold : Double  = 0.0
+    var thresholdX : Double = 0.0
+    var thresholdY : Double  = 0.0
+    var thresholdZ : Double  = 0.0
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         //Nothing to do yet.
@@ -70,7 +64,7 @@ open class SensorBase(context: Context, filename_tag:String) : SensorEventListen
                     val y = kotlin.math.abs(event.values[1])
                     val z = kotlin.math.abs(event.values[2])
 
-                    if (x > x_threshold || y > y_threshold || z > z_threshold){
+                    if (x > thresholdX || y > thresholdY || z > thresholdZ){
                         val line = SimpleDateFormat("yyyy_MM_dd_HH_mm_ss_SSS", Locale.US).format(Date()) +
                                 ":${event.values[0]};${event.values[1]};${event.values[2]}\n"
                         writeToFile(line)
