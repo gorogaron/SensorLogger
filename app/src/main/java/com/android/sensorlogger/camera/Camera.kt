@@ -156,9 +156,9 @@ class Camera(context: Context) {
             Log.d("CAM", "User is in movement, started recording.")
         }
         if (!App.inMovement && recording){
-            Log.d("CAM", "User has not moved for 30 seconds, stopped recording.")
             uploadHandler.removeCallbacks(uploadTask)
             uploadVideo(false)
+            Log.d("CAM", "User has not moved for 30 seconds, stopped recording.")
         }
 
         recordHandler.postDelayed(movementChecker,1000)
@@ -188,7 +188,6 @@ class Camera(context: Context) {
 
     fun stopRecording(){
         recording = false
-        recordHandler.removeCallbacks(movementChecker)
         recorder.stop()
     }
 
