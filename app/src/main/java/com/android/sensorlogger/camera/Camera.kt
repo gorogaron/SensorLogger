@@ -22,6 +22,7 @@ import com.android.sensorlogger.Utils.Util.isOnline
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -164,6 +165,7 @@ class Camera(context: Context) {
     }
 
     private fun startRecording() = GlobalScope.launch(Dispatchers.Default){
+        if (!initSuccessful) initializeCamera().join()
         if (initSuccessful) {
             recording = true
 
@@ -186,13 +188,17 @@ class Camera(context: Context) {
     }
 
     fun stopRecording(){
-        session.stopRepeating()
-        recording = false
-        recorder.stop()
+        if (recording){
+            initSuccessful = false
+            session.stopRepeating()
+            camera.close()
+            recorder.stop()
+            recording = false
+        }
     }
 
     fun start() = GlobalScope.launch(Dispatchers.IO){
-        initializeCamera().join()
+        //initializeCamera().join()
         recordHandler.postDelayed(movementChecker, 1000)
     }
 
@@ -209,7 +215,7 @@ class Camera(context: Context) {
         GlobalScope.launch(Dispatchers.IO){
             if (isOnline()){
                 val fileToUpload = outputFile
-                stopRecording()
+                runBlocking { stopRecording() }
 
                 if (startNewSession){
                     startRecording()
