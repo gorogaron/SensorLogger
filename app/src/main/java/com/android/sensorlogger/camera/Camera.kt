@@ -186,6 +186,7 @@ class Camera(context: Context) {
     }
 
     fun stopRecording(){
+        session.stopRepeating()
         recording = false
         recorder.stop()
     }
