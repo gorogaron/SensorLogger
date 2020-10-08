@@ -48,5 +48,6 @@ open class Logger(open var context: Context, var fileNameTag : String) {
     fun closeFile(){
         outputStreamWriter?.close()
         outputStreamWriter = null
+        App.uploadManager.add(logFile)
     }
 }

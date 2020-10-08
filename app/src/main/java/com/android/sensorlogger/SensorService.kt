@@ -11,7 +11,7 @@ import com.agrolytics.agrolytics_android.utils.Gps
 import com.android.sensorlogger.Utils.Actions
 import com.android.sensorlogger.Utils.TAG
 import com.android.sensorlogger.camera.Camera
-import com.android.sensorlogger.networking.UploadWatcher
+import com.android.sensorlogger.networking.UploadManager
 import com.android.sensorlogger.sensors.Accelerometer
 import com.android.sensorlogger.sensors.Gyroscope
 import com.android.sensorlogger.sensors.Magnetometer
@@ -29,7 +29,7 @@ class SensorService : Service(){
     private var camera : Camera? = null
     private var gps : Gps? = null
     private var wifi : Wifi? = null
-    private var uploadWatcher : UploadWatcher? = null
+    private var uploadManager : UploadManager? = null
 
     override fun onBind(intent: Intent): IBinder? {
         Log.d(TAG, "Some component wants to bind with the service")

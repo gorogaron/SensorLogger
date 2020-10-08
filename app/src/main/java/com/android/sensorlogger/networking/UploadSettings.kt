@@ -2,14 +2,10 @@ package com.android.sensorlogger.networking
 
 import android.app.AlertDialog
 import android.content.Context
-import android.text.InputFilter
 import android.view.LayoutInflater
 import android.widget.Toast
 import com.android.sensorlogger.App
 import com.android.sensorlogger.R
-import com.android.sensorlogger.Utils.SessionManager
-import com.android.sensorlogger.camera.InputFilterMinMax
-import kotlinx.android.synthetic.main.camera_settings.view.*
 import kotlinx.android.synthetic.main.upload_settings.view.*
 
 class UploadSettings(var context : Context) {

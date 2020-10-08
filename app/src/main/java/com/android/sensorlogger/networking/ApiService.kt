@@ -13,24 +13,22 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class ApiService {
-    val api = SensorLoggerApi.create()
+    private val api = SensorLoggerApi.create()
 
-    suspend fun uploadFile(file: File, context: Context): Boolean{
+    suspend fun uploadFile(file: File, context: Context){
         Log.d("API", "Started uploading file: ${file.name}")
         val fileUri = FileProvider.getUriForFile(context, context.packageName + ".provider", file)
 
         val filePart = file.asRequestBody(context.contentResolver.getType(fileUri)!!.toMediaTypeOrNull())
         val filePartRequest = MultipartBody.Part.createFormData("files", file.name, filePart)
         var response = api.uploadFile(App.sessionManager.getEndpoint()!!,filePartRequest).awaitResponse()
-        return if (response.isSuccessful){
+        if (response.isSuccessful){
             Log.d("API", "Uploading successful: ${file.name}")
             var date = SimpleDateFormat("HH:mm:ss", Locale.US).format(Date())
             App.lastUpload = "${file.name} ($date)"
             App.networkTraffic = (App.networkTraffic + getFileSize(file)).round(2)
-            true
         } else {
-            Log.d("API", "Failed to upload file: ${file.name}")
-            false
+            throw RuntimeException("Upload failed")
         }
     }
 }

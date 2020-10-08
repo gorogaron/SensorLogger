@@ -212,25 +212,17 @@ class Camera(context: Context) {
 
     private fun uploadVideo(startNewSession: Boolean){
         Log.d("CAM", "Started uploading video.")
-        GlobalScope.launch(Dispatchers.IO){
-            if (isOnline()){
-                val fileToUpload = outputFile
-                runBlocking { stopRecording() }
+        val fileToUpload = outputFile
+        stopRecording()
 
-                if (startNewSession){
-                    startRecording()
-                }
-
-                if (fileToUpload != null) {
-                    App.apiService.uploadFile(fileToUpload, mContext)
-
-                    //Delete old file
-                    fileToUpload.delete()
-                }
-            }
+        if (fileToUpload != null) {
+            App.uploadManager.add(fileToUpload)
         }
-        if (startNewSession) uploadHandler.postDelayed(uploadTask, uploadPeriod)
 
+        if (startNewSession){
+            startRecording()
+            uploadHandler.postDelayed(uploadTask, uploadPeriod)
+        }
     }
 
     fun triggerManualUpload(){
