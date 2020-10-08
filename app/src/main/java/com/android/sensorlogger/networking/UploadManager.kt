@@ -2,8 +2,8 @@ package com.android.sensorlogger.networking
 
 import android.content.Context
 import android.util.Log
-import com.android.sensorlogger.utils.TAG
-import com.android.sensorlogger.utils.Util
+import com.android.sensorlogger.Utils.TAG
+import com.android.sensorlogger.Utils.Util
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
