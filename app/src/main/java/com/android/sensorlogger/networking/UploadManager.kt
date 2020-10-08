@@ -14,6 +14,7 @@ class UploadManager(val context: Context) {
     private val logDirectory = File(context.getExternalFilesDir(null).toString() + "/SensorLogger/logs")
     private var filesToUpload = mutableListOf<File>()
     private var apiService = ApiService()
+    private var isActive = false
 
     init {
         logDirectory.walk().forEach {
@@ -32,6 +33,8 @@ class UploadManager(val context: Context) {
     }
 
     private fun uploadFiles() = GlobalScope.launch(Dispatchers.IO) {
+        if(isActive) return@launch
+        isActive = true
         while (filesToUpload.isNotEmpty()) {
             while (!Util.isOnline()) {
                 Log.d(TAG, "Waiting 30s for network")
@@ -58,7 +61,7 @@ class UploadManager(val context: Context) {
                     Log.e(TAG, "Uploading failed: ${it.name} ${e.localizedMessage}")
                 }
             }
-
         }
+        isActive = false
     }
 }
