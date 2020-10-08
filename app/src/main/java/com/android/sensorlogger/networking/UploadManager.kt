@@ -42,13 +42,18 @@ class UploadManager(val context: Context) {
             filesToUpload.toMutableList().forEach {
                 if (it.length() <= 0) {
                     Log.d(TAG, "${it.name} has 0 Byte, deleting")
-                    it.delete()
+                    try {
+                        it.delete()
+                        filesToUpload.remove(it)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Deleting failed: ${it.name} ${e.localizedMessage}")
+                    }
                     return@forEach
                 }
                 try {
                     apiService.uploadFile(it, context)
-                    filesToUpload.remove(it)
                     it.delete()
+                    filesToUpload.remove(it)
                 } catch (e: Exception) {
                     Log.e(TAG, "Uploading failed: ${it.name} ${e.localizedMessage}")
                 }
