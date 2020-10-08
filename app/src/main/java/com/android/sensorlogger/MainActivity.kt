@@ -4,11 +4,13 @@ import android.Manifest.permission.*
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.android.sensorlogger.Utils.Actions
 import kotlinx.android.synthetic.main.activity_main.*
 import com.android.sensorlogger.Utils.PermissionHelper
 import com.android.sensorlogger.camera.CameraSettings
@@ -52,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         uploadButton.setOnClickListener {
             var serviceIntent = Intent(this, SensorService::class.java)
             serviceIntent.putExtra("UPLOAD_REQUEST", 1)
-            startService(serviceIntent)
+            startForegroundService(serviceIntent)
         }
 
         statisticsHandler.postDelayed(statisticsUpdater, 1000)
@@ -65,8 +67,7 @@ class MainActivity : AppCompatActivity() {
         cameraSettingButton.visibility = View.GONE
         uploadSettingButton.visibility = View.GONE
 
-        var serviceIntent = Intent(this, SensorService::class.java)
-        startService(serviceIntent)
+        actionOnService(Actions.START)
     }
 
     private fun stopMeasurement(){
@@ -76,8 +77,7 @@ class MainActivity : AppCompatActivity() {
         cameraSettingButton.visibility = View.VISIBLE
         uploadSettingButton.visibility = View.VISIBLE
 
-        var serviceIntent = Intent(this, SensorService::class.java)
-        stopService(serviceIntent)
+        actionOnService(Actions.STOP)
     }
 
     private fun isMeasurementRunning(): Boolean {
@@ -89,6 +89,14 @@ class MainActivity : AppCompatActivity() {
         }
         return false
     }
+
+    private fun actionOnService(action: Actions) {
+        Intent(this, SensorService::class.java).also {
+            it.action = action.name
+            startForegroundService(it)
+        }
+    }
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (!PermissionHelper.hasAllPermissions(this)) {
