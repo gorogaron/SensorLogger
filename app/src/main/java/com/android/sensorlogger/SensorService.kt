@@ -1,27 +1,27 @@
 package com.android.sensorlogger
 
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
+import android.content.Context
 import android.content.Intent
-import android.hardware.Sensor
-import android.os.Handler
-import android.os.IBinder
-import android.os.Message
-import android.os.Messenger
+import android.graphics.Color
+import android.os.*
 import android.util.Log
 import android.widget.Toast
-import androidx.core.app.NotificationCompat
 import com.agrolytics.agrolytics_android.utils.Gps
-import com.android.sensorlogger.Utils.Util
+import com.android.sensorlogger.Utils.Actions
+import com.android.sensorlogger.Utils.TAG
 import com.android.sensorlogger.camera.Camera
 import com.android.sensorlogger.sensors.Accelerometer
 import com.android.sensorlogger.sensors.Gyroscope
 import com.android.sensorlogger.sensors.Magnetometer
 import com.android.sensorlogger.wifi.Wifi
-import java.lang.RuntimeException
 
 
 class SensorService : Service(){
+
+    private var isServiceStarted = false
+    private var wakeLock: PowerManager.WakeLock? = null
+
     private var accelerometer : Accelerometer? = null
     private var gyroscope : Gyroscope? = null
     private var magnetometer: Magnetometer? = null
@@ -29,10 +29,51 @@ class SensorService : Service(){
     private var gps : Gps? = null
     private var wifi : Wifi? = null
 
+    override fun onBind(intent: Intent): IBinder? {
+        Log.d(TAG, "Some component wants to bind with the service")
+        // We don't provide binding, so return null
+        return null
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand executed with startId: $startId")
+        if (intent != null) {
+            val action = intent.action
+            Log.d(TAG, "using an intent with action $action")
+            when (action) {
+                Actions.START.name -> startService()
+                Actions.STOP.name -> stopService()
+                else -> Log.d(TAG, "This should never happen. No action in the received intent")
+            }
+        } else {
+            Log.d(TAG,"with a null intent. It has been probably restarted by the system." )
+        }
+        // by returning this we make sure the service is restarted if the system kills the service
+        return START_STICKY
+    }
+
     override fun onCreate() {
-        //Will be called only the first time the service is created. We can stop and start it,
-        //onCreate will be called only once.
         super.onCreate()
+        Log.d(TAG, "The service has been created")
+        val notification = createNotification()
+        startForeground(1, notification)
+    }
+
+
+    private fun startService() {
+        if (isServiceStarted) return
+        Log.d(TAG,"Starting the foreground service task")
+        Toast.makeText(this, "Service starting its task", Toast.LENGTH_SHORT).show()
+        isServiceStarted = true
+
+        // we need this lock so our service gets not affected by Doze Mode
+        wakeLock =
+            (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
+                newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "EndlessService::lock").apply {
+                    acquire()
+                }
+            }
+
         fun <T> tryOrNull(f: () -> T) =
             try {
                 f()
@@ -46,52 +87,67 @@ class SensorService : Service(){
         gps = tryOrNull { Gps(this) }
         camera = tryOrNull { Camera(this) }
         wifi = tryOrNull { Wifi(this) }
+
+        wifi?.run()
+        accelerometer?.run()
+        gyroscope?.run()
+        magnetometer?.run()
+        camera?.start()
+        gps?.run()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent!!.extras != null){
-            wifi?.triggerManualUpload()
-            accelerometer?.triggerManualUpload()
-            gyroscope?.triggerManualUpload()
-            magnetometer?.triggerManualUpload()
-            camera?.triggerManualUpload()
-            gps?.triggerManualUpload()
+    private fun stopService() {
+        Log.d(TAG, "Stopping the foreground service")
+        Toast.makeText(this, "Service stopping", Toast.LENGTH_SHORT).show()
+        try {
+            wakeLock?.let {
+                if (it.isHeld) {
+                    it.release()
+                }
+            }
+            stopForeground(true)
+            stopSelf()
+        } catch (e: Exception) {
+            Log.d(TAG, "Service stopped without being started: ${e.message}")
         }
-        else {
-            val notificationIntent = Intent(this, MainActivity::class.java)
-            val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
-
-            val notification = NotificationCompat.Builder(this, App.CHANNEL_ID)
-                .setContentTitle("Sensor Logger")
-                .setContentText("Measurement is running in the background.")
-                .setSmallIcon(R.drawable.icon)
-                .setContentIntent(pendingIntent)
-                .build()
-            startForeground(1, notification)
-
-            wifi?.run()
-            accelerometer?.run()
-            gyroscope?.run()
-            magnetometer?.run()
-            camera?.start()
-            gps?.run()
-        }
-        //When system kills the service, restart it automatically with intent = null
-        return START_STICKY
-    }
-
-    override fun onDestroy() {
+        isServiceStarted = false
         wifi?.stop()
         accelerometer?.stop()
         gyroscope?.stop()
         magnetometer?.stop()
         gps?.stop()
         camera?.stop()
-        super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        TODO("Not yet implemented")
-    }
+    private fun createNotification(): Notification {
+        val notificationChannelId = "SENSOR LOGGER CHANNEL"
 
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channel = NotificationChannel(
+            notificationChannelId,
+            "Sensor Logger notifications channel",
+            NotificationManager.IMPORTANCE_HIGH
+        ).let {
+            it.description = "Sensor Logger channel"
+            it.enableLights(true)
+            it.lightColor = Color.RED
+            it
+        }
+        notificationManager.createNotificationChannel(channel)
+
+
+        val pendingIntent: PendingIntent = Intent(this, MainActivity::class.java).let { notificationIntent ->
+            PendingIntent.getActivity(this, 0, notificationIntent, 0)
+        }
+
+        val builder =  Notification.Builder(this, notificationChannelId )
+
+        return builder
+            .setContentTitle("Sensor Logger")
+            .setContentText("Measurement is running in the background.")
+            .setSmallIcon(R.drawable.icon)
+            .setContentIntent(pendingIntent)
+            .setTicker("Sensor Logger")
+            .build()
+    }
 }
