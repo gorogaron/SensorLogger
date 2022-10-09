@@ -1,4 +1,6 @@
 # SensorLogger application for Android
+This application logs the data of all available sensors on the device, and sends the logs to a server.
+
 ## Basic informations
 **Requirements**
 * Minimum Android 8.0
